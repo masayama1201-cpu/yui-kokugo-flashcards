@@ -239,14 +239,20 @@ function shuffle(arr) {
   return a;
 }
 
-const SECONDS = 7; // 切り替え間隔
+const QUESTION_SECONDS = 7; // 問題を表示している時間（答えが出るまで）
+const ANSWER_SECONDS = 5;   // 答えを表示している時間（次の問題に切り替わるまで）
+function currentPhaseSeconds() {
+  // まだ答えを見せていない＝これから答えを見せるまでの待ち時間はQUESTION_SECONDS
+  // すでに答えを見せている＝次の問題に進むまでの待ち時間はANSWER_SECONDS
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
 let deck = shuffle(DATA);
 let idx = 0;
 let showingAnswer = false;
 let paused = false;
 let timer = null;
 let tickStart = 0;
-let remainingOnPause = SECONDS * 1000;
+let remainingOnPause = QUESTION_SECONDS * 1000;
 
 const questionEl = document.getElementById("question");
 const answerBox = document.getElementById("answerBox");
@@ -297,30 +303,31 @@ function step() {
 }
 
 function startProgress() {
-  const start = Date.now();
+  const seconds = currentPhaseSeconds();
   progressBar.style.transition = "none";
   progressBar.style.width = "0%";
   requestAnimationFrame(() => {
-    progressBar.style.transition = "width " + SECONDS + "s linear";
+    progressBar.style.transition = "width " + seconds + "s linear";
     progressBar.style.width = "100%";
   });
 }
 
 function scheduleNext() {
   clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
   tickStart = Date.now();
-  remainingOnPause = SECONDS * 1000;
+  remainingOnPause = seconds * 1000;
   timer = setTimeout(() => {
     step();
     if (!paused) scheduleNext();
-  }, SECONDS * 1000);
+  }, seconds * 1000);
 }
 
 function pause() {
   paused = true;
   clearTimeout(timer);
   const elapsed = Date.now() - tickStart;
-  remainingOnPause = Math.max(SECONDS * 1000 - elapsed, 0);
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
   progressBar.style.transition = "none"; // freeze bar where it is
   playPauseBtn.textContent = "▶ 再生";
 }
