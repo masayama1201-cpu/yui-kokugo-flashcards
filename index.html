@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>国語 語句・慣用句・誤字訂正 スライドショー</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 5.5vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .question .kanji-error {
+    color: var(--accent);
+    text-decoration: underline wavy var(--accent);
+    text-underline-offset: 6px;
+  }
+  .answer-box {
+    font-size: 4.2vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+  .finished {
+    font-size: 4vw;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">大問1</span>
+    <span id="counter">1 / 47</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <span class="hint">7秒ごとに自動で切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ==== 大問1 慣用句の意味 ====
+  {cat:"大問1 慣用句の意味", q:"「顔が広い」の意味は？", a:"知り合いが多いこと"},
+  {cat:"大問1 慣用句の意味", q:"「耳が痛い」の意味は？", a:"自分の欠点を言われてつらいこと"},
+  {cat:"大問1 慣用句の意味", q:"「口が堅い」の意味は？", a:"秘密を人にもらさないこと"},
+  {cat:"大問1 慣用句の意味", q:"「骨が折れる」の意味は？", a:"物事に手間や苦労がかかること"},
+  {cat:"大問1 慣用句の意味", q:"「猫の額」の意味は？", a:"非常に狭い場所のたとえ"},
+  {cat:"大問1 慣用句の意味", q:"「馬が合う」の意味は？", a:"気が合うこと"},
+  {cat:"大問1 慣用句の意味", q:"「犬猿の仲」の意味は？", a:"仲が非常に悪いこと"},
+  {cat:"大問1 慣用句の意味", q:"「雀の涙」の意味は？", a:"非常に少ない量のたとえ"},
+  {cat:"大問1 慣用句の意味", q:"「気が置けない」の意味は？", a:"遠慮がいらず打ち解けられること"},
+  {cat:"大問1 慣用句の意味", q:"「手を焼く」の意味は？", a:"扱いに困って苦労すること"},
+
+  // ==== 大問2 慣用句の穴うめ ====
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）が高い」＝自慢に思う気持ちが強い。入る漢字は？", a:"鼻（鼻が高い）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）を長くする」＝期待して待ちわびる。入る漢字は？", a:"首（首を長くする）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）にあまる」＝ひどすぎて我慢できない。入る漢字は？", a:"目（目にあまる）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）車に乗る」＝うまい言葉にだまされる。入る漢字は？", a:"口（口車に乗る）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）を割る」＝本当のことを白状する。入る漢字は？", a:"口（口を割る）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）が棒になる」＝歩き疲れて感覚がなくなるほどつかれる。入る漢字は？", a:"足（足が棒になる）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）をあらう」＝悪いことをやめてまじめになる。入る漢字は？", a:"足（足をあらう）"},
+  {cat:"大問2 慣用句の穴うめ", q:"「（　）にたこができる」＝同じことを何度も聞かされてうんざりする。入る漢字は？", a:"耳（耳にたこができる）"},
+
+  // ==== 大問3 対義語 ====
+  {cat:"大問3 対義語", q:"「拡大」の対義語は？", a:"縮小"},
+  {cat:"大問3 対義語", q:"「集中」の対義語は？", a:"分散"},
+  {cat:"大問3 対義語", q:"「安全」の対義語は？", a:"危険"},
+  {cat:"大問3 対義語", q:"「需要」の対義語は？", a:"供給"},
+  {cat:"大問3 対義語", q:"「理想」の対義語は？", a:"現実"},
+  {cat:"大問3 対義語", q:"「積極」の対義語は？", a:"消極"},
+  {cat:"大問3 対義語", q:"「保守」の対義語は？", a:"革新"},
+  {cat:"大問3 対義語", q:"「原因」の対義語は？", a:"結果"},
+  {cat:"大問3 対義語", q:"「単純」の対義語は？", a:"複雑"},
+  {cat:"大問3 対義語", q:"「義務」の対義語は？", a:"権利"},
+
+  // ==== 大問4 類義語 ====
+  {cat:"大問4 類義語", q:"「進歩」の類義語は？", a:"発展（向上）"},
+  {cat:"大問4 類義語", q:"「方法」の類義語は？", a:"手段"},
+  {cat:"大問4 類義語", q:"「意外」の類義語は？", a:"案外"},
+  {cat:"大問4 類義語", q:"「突然」の類義語は？", a:"急に（不意に）"},
+  {cat:"大問4 類義語", q:"「決心」の類義語は？", a:"決意"},
+  {cat:"大問4 類義語", q:"「長所」の類義語は？", a:"美点（とりえ）"},
+  {cat:"大問4 類義語", q:"「我慢」の類義語は？", a:"辛抱"},
+  {cat:"大問4 類義語", q:"「賛成」の類義語は？", a:"同意"},
+
+  // ==== 大問5 誤字訂正＋意味 ====
+  {cat:"大問5 誤字訂正＋意味", q:"「兄は将来医者になるという的角な目標を持っている。」まちがっている漢字を直して、意味も答えよう。", a:"「的角」→「的確」／考えなどがはっきりしていて、まちがいがないこと"},
+  {cat:"大問5 誤字訂正＋意味", q:"「母は毎朝、家族全員の健康に気を使う週間がある。」まちがっている漢字を直して、意味も答えよう。", a:"「週間」→「習慣」／長い間くり返されて、決まりのようになっている行い"},
+  {cat:"大問5 誤字訂正＋意味", q:"「台風の接近にともない、電車が運航を停止する予定である。」まちがっている漢字を直して、意味も答えよう。", a:"「運航」→「運行」／決められた道筋にそって、乗り物が進むこと"},
+  {cat:"大問5 誤字訂正＋意味", q:"「このクラスは委員長を中心に、いつも意気統合している。」まちがっている漢字を直して、意味も答えよう。", a:"「統合」→「投合」（意気投合）／気持ちや考えがぴったり合うこと"},
+  {cat:"大問5 誤字訂正＋意味", q:"「彼女はどんな時も表状を変えずに落ち着いている。」まちがっている漢字を直して、意味も答えよう。", a:"「表状」→「表情」／心の動きが顔に表れたようす"},
+  {cat:"大問5 誤字訂正＋意味", q:"「今年から新しい制度が施行されることが決訂した。」まちがっている漢字を直して、意味も答えよう。", a:"「決訂」→「決定」／物事をこうすると、はっきり決めること"},
+
+  // ==== 大問6(1) 共通する漢字 ====
+  {cat:"大問6 共通する漢字", q:"「学（　）」「（　）慣」「復（　）」に共通して入る漢字は？", a:"習（学習・習慣・復習）"},
+  {cat:"大問6 共通する漢字", q:"「（　）械」「危（　）」「時（　）」に共通して入る漢字は？", a:"機（機械・危機・時機）"},
+  {cat:"大問6 共通する漢字", q:"「（　）思」「決（　）」「合（　）」に共通して入る漢字は？", a:"意（意思・決意・合意）"},
+
+  // ==== 大問6(2) 四字熟語 ====
+  {cat:"大問6 四字熟語", q:"「一朝一夕」の意味は？", a:"わずかな期間"},
+  {cat:"大問6 四字熟語", q:"「大器晩成」の意味は？", a:"すぐれた人物は世に出るまで時間がかかる"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const SECONDS = 7; // 切り替え間隔
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  // 先に「transitionなし」で瞬時に非表示にしてから文字を差し替える。
+  // （表示したまま文字だけ書き換えると、フェードアウト中に新しい答えが一瞬透けて見えてしまうため）
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth; // 強制的に再描画させて非表示を確定させる
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    // 答えを表示するタイミング
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    // 次の問題へ
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA); // 一周したらまたシャッフルして続ける
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const start = Date.now();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + SECONDS + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  tickStart = Date.now();
+  remainingOnPause = SECONDS * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, SECONDS * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(SECONDS * 1000 - elapsed, 0);
+  progressBar.style.transition = "none"; // freeze bar where it is
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  // resume the visual progress bar smoothly
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+// タップ/クリックで手動送りもできるようにする（画面のどこでもOK。ボタン類は除く）
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+// 初期表示
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
