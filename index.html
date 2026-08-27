@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
 <title>国語 語句・慣用句・誤字訂正 スライドショー</title>
 <style>
   :root {
@@ -157,6 +161,7 @@
   <div class="bottombar">
     <button id="playPause">⏸ 一時停止</button>
     <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
     <span class="hint">7秒ごとに自動で切り替わります（タップでも操作できます）</span>
   </div>
 </div>
@@ -251,6 +256,7 @@ const counterEl = document.getElementById("counter");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function renderCard() {
   const item = deck[idx];
@@ -349,6 +355,31 @@ restartBtn.addEventListener("click", () => {
     scheduleNext();
   }
 });
+
+// 全画面表示のオン・オフ（対応していないiOSバージョンではボタンが効かないことがあります。
+// その場合は「ホーム画面に追加」したアイコンから起動してください＝アドレスバー等が最初から出ません）
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
 // タップ/クリックで手動送りもできるようにする（画面のどこでもOK。ボタン類は除く）
 document.querySelector(".card").addEventListener("click", () => {
