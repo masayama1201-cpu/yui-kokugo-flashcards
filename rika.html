@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>理科 暗記事項 スライドショー</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #7ec8ff;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(126,200,255,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 5vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 4.2vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">理科</span>
+    <span id="counter">1 / 62</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ==== 光合成・植物のつくり ====
+  {cat:"光合成・植物のつくり", q:"光合成は何と何を材料に、日光のエネルギーを使って何をつくる反応？", a:"二酸化炭素と水を材料に、でんぷん（養分）と酸素をつくる"},
+  {cat:"光合成・植物のつくり", q:"光合成は葉の細胞の中の何というつくりで行われる？", a:"葉緑体"},
+  {cat:"光合成・植物のつくり", q:"葉にある、水や養分の通り道を何という？", a:"葉脈"},
+  {cat:"光合成・植物のつくり", q:"単子葉類（イネなど）の葉脈の形は？", a:"平行脈"},
+  {cat:"光合成・植物のつくり", q:"双子葉類（アサガオなど）の葉脈の形は？", a:"網状脈"},
+  {cat:"光合成・植物のつくり", q:"単子葉類の根の形は？", a:"ひげ根"},
+  {cat:"光合成・植物のつくり", q:"双子葉類の根の形は？", a:"主根と側根"},
+  {cat:"光合成・植物のつくり", q:"種子が発芽するために必要な3つの条件は？", a:"水・空気（酸素）・適当な温度"},
+  {cat:"光合成・植物のつくり", q:"発芽の3条件にふくまれない、ひっかけやすいものは？（発芽だけなら不要）", a:"肥料と日光（発芽後の成長には必要）"},
+  {cat:"光合成・植物のつくり", q:"インゲンマメの種子で、発芽のための栄養をたくわえている部分を何という？", a:"子葉"},
+  {cat:"光合成・植物のつくり", q:"根から吸い上げた水が主に通る管を何という？", a:"道管"},
+  {cat:"光合成・植物のつくり", q:"葉でつくられた養分（でんぷん）が通る管を何という？", a:"師管"},
+  {cat:"光合成・植物のつくり", q:"植物が体の中の水を水蒸気として空気中に出すはたらきを何という？", a:"蒸散"},
+  {cat:"光合成・植物のつくり", q:"蒸散が主に行われる、葉の裏に多い小さな穴を何という？", a:"気孔"},
+
+  // ==== てこ・ばね ====
+  {cat:"てこ・ばね", q:"てこで、力を加える点・支える点・力がはたらく点をそれぞれ何という？", a:"力点・支点・作用点"},
+  {cat:"てこ・ばね", q:"てこがつり合うときのきまりは？", a:"（重さ×支点からの距離）が左右で等しくなる"},
+  {cat:"てこ・ばね", q:"支点から力点までの距離を長くすると、同じ物を持ち上げるのに必要な力はどうなる？", a:"小さくなる（楽になる）"},
+  {cat:"てこ・ばね", q:"ばねの伸びとおもりの重さの間には、どんな関係がある？", a:"比例の関係（おもりが重いほど伸びも大きい）"},
+  {cat:"てこ・ばね", q:"おもりの重さを2倍、3倍にすると、ばねの伸びはどうなる？", a:"2倍、3倍になる"},
+  {cat:"てこ・ばね", q:"同じばね2本を直列（たてにつなげて）につるすと、全体の伸びは1本のときの何倍？", a:"2倍"},
+  {cat:"てこ・ばね", q:"同じばね2本を並列（横に並べて）にして同じ重さをつるすと、1本あたりの伸びは1本のときの何倍？", a:"1/2倍（半分）"},
+  {cat:"てこ・ばね", q:"くぎぬきやせんぬきのように、支点が力点と作用点の間にあるてこの仲間の道具を1つ挙げると？", a:"くぎぬき・はさみ・せんぬきなど"},
+
+  // ==== 水溶液・溶解度 ====
+  {cat:"水溶液・溶解度", q:"一般に、水の温度を上げるととける物の量はどうなる？", a:"増える"},
+  {cat:"水溶液・溶解度", q:"水の温度を上げても、とける量があまり変化しない代表的な物質は？", a:"食塩（塩化ナトリウム）"},
+  {cat:"水溶液・溶解度", q:"水の温度を上げるととける量が大きく増える代表的な物質を2つ挙げると？", a:"ほう酸・ミョウバンなど"},
+  {cat:"水溶液・溶解度", q:"水溶液からとけている物を固体として取り出す方法を2つ挙げると？", a:"蒸発させる（蒸発乾固）／温度を下げて結晶を出す（再結晶）"},
+  {cat:"水溶液・溶解度", q:"一定量の水にとける物の限度の量を何という？", a:"溶解度"},
+  {cat:"水溶液・溶解度", q:"ろ過をするとき、ろうとの先のとがった方はどこにつける？", a:"ビーカーの内側のかべ"},
+  {cat:"水溶液・溶解度", q:"水溶液の濃さ（濃度）はどんな式で求める？", a:"とけている物の重さ ÷ 水溶液全体の重さ × 100（％）"},
+
+  // ==== 気体の性質 ====
+  {cat:"気体の性質", q:"ものが燃えるのを助けるはたらきがある気体は？", a:"酸素"},
+  {cat:"気体の性質", q:"石灰水を白くにごらせる気体は？", a:"二酸化炭素"},
+  {cat:"気体の性質", q:"空気より軽く、燃えると水ができる気体は？", a:"水素"},
+  {cat:"気体の性質", q:"鼻をさすようなにおいがあり、水に非常によくとける気体は？", a:"アンモニア"},
+  {cat:"気体の性質", q:"アンモニアの水溶液は何性？", a:"アルカリ性"},
+  {cat:"気体の性質", q:"二酸化炭素の水溶液（炭酸水）は何性？", a:"酸性"},
+  {cat:"気体の性質", q:"塩酸に鉄や亜鉛を入れると発生する気体は？", a:"水素"},
+  {cat:"気体の性質", q:"二酸化マンガンにオキシドール（うすい過酸化水素水）を加えると発生する気体は？", a:"酸素"},
+
+  // ==== 動物の分類 ====
+  {cat:"動物の分類", q:"背骨がある動物をまとめて何という？", a:"せきつい動物"},
+  {cat:"動物の分類", q:"せきつい動物は5つのグループに分けられる。その5つは？", a:"魚類・両生類・は虫類・鳥類・ほ乳類"},
+  {cat:"動物の分類", q:"子は水中でうまれえらで呼吸するが、成長すると肺や皮膚で呼吸するようになる仲間は？", a:"両生類"},
+  {cat:"動物の分類", q:"一生えらで呼吸する仲間は？", a:"魚類"},
+  {cat:"動物の分類", q:"体温が周りの温度によって変化する動物（変温動物）はどのグループ？", a:"魚類・両生類・は虫類"},
+  {cat:"動物の分類", q:"体温がほぼ一定に保たれる動物（恒温動物）はどのグループ？", a:"鳥類・ほ乳類"},
+  {cat:"動物の分類", q:"背骨のない動物をまとめて何という？", a:"無せきつい動物"},
+  {cat:"動物の分類", q:"昆虫の体は頭・胸・腹の3つに分かれ、あしは何本？", a:"6本（3対）、すべて胸から生えている"},
+
+  // ==== 天体の基礎知識 ====
+  {cat:"天体の基礎知識", q:"月が地球の周りを1周してもとの形にもどるまで約何日かかる？", a:"約29.5日"},
+  {cat:"天体の基礎知識", q:"太陽・地球・月の順に一直線に並び、月が地球の影に入る現象を何という？", a:"月食"},
+  {cat:"天体の基礎知識", q:"太陽・月・地球の順に一直線に並び、太陽が月にかくされる現象を何という？", a:"日食"},
+  {cat:"天体の基礎知識", q:"右側が光って見える半月を何という？", a:"上弦の月"},
+  {cat:"天体の基礎知識", q:"左側が光って見える半月を何という？", a:"下弦の月"},
+  {cat:"天体の基礎知識", q:"まったく光って見えない月を何という？", a:"新月"},
+  {cat:"天体の基礎知識", q:"夏の大三角を作る3つの星の名前は？", a:"ベガ（織姫星）・アルタイル（彦星）・デネブ"},
+  {cat:"天体の基礎知識", q:"冬の大三角を作る3つの星の名前は？", a:"ベテルギウス・シリウス・プロキオン"},
+  {cat:"天体の基礎知識", q:"北の空でほとんど動かないように見える星は？", a:"北極星"},
+  {cat:"天体の基礎知識", q:"星の色のちがいは主に何のちがいによる？", a:"星の表面温度のちがい（青いほど高温、赤いほど低温）"},
+  {cat:"天体の基礎知識", q:"地球が太陽の周りを1周するのにかかる時間は約何日？", a:"約365日（1年）"},
+
+  // ==== ものの溶け方・ふりこ ====
+  {cat:"ふりこ・もののとけ方", q:"ふりこが1往復する時間を何という？", a:"周期"},
+  {cat:"ふりこ・もののとけ方", q:"ふりこの周期を決める最も重要な条件は？", a:"ふりこの長さ"},
+  {cat:"ふりこ・もののとけ方", q:"ふりこの長さを長くすると、周期はどうなる？", a:"長くなる"},
+  {cat:"ふりこ・もののとけ方", q:"おもりの重さを変えると、ふりこの周期はどうなる？", a:"変わらない"},
+  {cat:"ふりこ・もののとけ方", q:"ふれはば（振れる角度）を変えると、ふりこの周期はどうなる？", a:"変わらない（ふりこの等時性）"},
+  {cat:"ふりこ・もののとけ方", q:"物が水にとける量は水の量に比例する。水の量を2倍にするととける量はどうなる？", a:"2倍になる"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7; // 問題を表示している時間（答えが出るまで）
+const ANSWER_SECONDS = 5;   // 答えを表示している時間（次の問題に切り替わるまで）
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
