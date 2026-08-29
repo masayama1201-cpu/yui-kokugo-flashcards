@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語 語句のたしなみ スライドショー③</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 5vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 4.2vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語③</span>
+    <span id="counter">1 / 47</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ==== ことわざ・慣用句（動物） ====
+  {cat:"ことわざ・慣用句（動物）", q:"「あぶはち取らず」の意味は？", a:"同時に複数のものをねらうと、結局どちらも得られないこと"},
+  {cat:"ことわざ・慣用句（動物）", q:"「犬も歩けば棒にあたる」の意味は？", a:"思いがけない災難にあうこと（思いがけない幸運にあう、という意味でも使われる）"},
+  {cat:"ことわざ・慣用句（動物）", q:"「二兎を追う者は一兎をも得ず」の意味は？", a:"同時に二つのことをしようとすると、両方とも失敗しがちだということ"},
+  {cat:"ことわざ・慣用句（動物）", q:"「井の中の蛙大海を知らず」の意味は？", a:"せまい世界しか知らない者が、広い世界を知らずにいばっていること"},
+  {cat:"ことわざ・慣用句（動物）", q:"「蛙の面に水」の意味は？", a:"どんな仕打ちをされても、まったく平気でいること"},
+  {cat:"ことわざ・慣用句（動物）", q:"「かめの甲より年の功」の意味は？", a:"年長者の積んできた経験は尊いものだということ"},
+  {cat:"ことわざ・慣用句（動物）", q:"「狐につままれる」の意味は？", a:"わけが分からず、ぼんやりすること"},
+  {cat:"ことわざ・慣用句（動物）", q:"「猿も木から落ちる」の意味は？", a:"名人でも失敗することがあるということ"},
+  {cat:"ことわざ・慣用句（動物）", q:"「月とすっぽん」の意味は？", a:"比べものにならないほど違うこと"},
+  {cat:"ことわざ・慣用句（動物）", q:"「能ある鷹はつめを隠す」の意味は？", a:"実力のある人ほど、それをひけらかさないこと"},
+  {cat:"ことわざ・慣用句（動物）", q:"「とらぬ狸の皮算用」の意味は？", a:"不確実なことをあてにして、計画を立てること"},
+  {cat:"ことわざ・慣用句（動物）", q:"「立つ鳥跡を濁さず」の意味は？", a:"去る者は、あとが見苦しくないように始末すべきだということ"},
+  {cat:"ことわざ・慣用句（動物）", q:"「猫の手も借りたい」の意味は？", a:"非常に忙しくて、人手が足りないこと"},
+  {cat:"ことわざ・慣用句（動物）", q:"「猫をかぶる」の意味は？", a:"本性を隠して、おとなしくしていること"},
+
+  // ==== ことわざ・慣用句（体の一部） ====
+  {cat:"ことわざ・慣用句（体の一部）", q:"「頭が下がる」の意味は？", a:"感心して尊敬すること"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「顔が売れる」の意味は？", a:"世の中に広く知れ渡ること"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「顔が利く」の意味は？", a:"信用や力があり、相手に無理を言えること"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「顔から火が出る」の意味は？", a:"非常に恥ずかしく思うこと"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「顔に泥をぬる」の意味は？", a:"恥をかかせ、面目を失わせること"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「仏の顔も三度まで」の意味は？", a:"温和な人でも、何度もひどい目にあえば怒り出すということ"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「一目置く」の意味は？", a:"優れた相手に敬意を払い、一歩譲ること"},
+  {cat:"ことわざ・慣用句（体の一部）", q:"「目が肥える」の意味は？", a:"見慣れていて、良し悪しを区別する力があること"},
+
+  // ==== 同訓異字 ====
+  {cat:"同訓異字（はかる）", q:"「長さ・面積・温度などをはかる」ときに使う漢字は？", a:"測る"},
+  {cat:"同訓異字（はかる）", q:"「体積や重さなどをはかる」ときに使う漢字は？", a:"量る"},
+  {cat:"同訓異字（はかる）", q:"「時間などをはかる」ときに使う漢字は？", a:"計る"},
+  {cat:"同訓異字（はかる）", q:"「計画する、工夫して努める」ときに使う漢字は？", a:"図る"},
+  {cat:"同訓異字（はじめ）", q:"「順序について言うときのはじめ」に使う漢字は？", a:"初め"},
+  {cat:"同訓異字（はじめ）", q:"「物事の開始」を表すときに使う漢字は？", a:"始め"},
+  {cat:"同訓異字（はやい）", q:"「時間的に前であること」を表す「はやい」の漢字は？", a:"早い"},
+  {cat:"同訓異字（はやい）", q:"「スピードがあること」を表す「はやい」の漢字は？", a:"速い"},
+  {cat:"同訓異字（まわり）", q:"「回ることや回り方」を表す「まわり」の漢字は？", a:"回り"},
+  {cat:"同訓異字（まわり）", q:"「ものの周囲」を表す「まわり」の漢字は？", a:"周り"},
+  {cat:"同訓異字（やさしい）", q:"「簡単だ」という意味の「やさしい」の漢字は？", a:"易しい"},
+  {cat:"同訓異字（やさしい）", q:"「性格が穏やかで好ましい」という意味の「やさしい」の漢字は？", a:"優しい"},
+
+  // ==== 重要語句 ====
+  {cat:"重要語句", q:"「案の定」の意味は？", a:"思った通りに"},
+  {cat:"重要語句", q:"「幾分」の意味は？", a:"少し、いくらか"},
+  {cat:"重要語句", q:"「一瞥（いちべつ）」の意味は？", a:"一瞬だけ見ること"},
+  {cat:"重要語句", q:"「一般的」の意味は？", a:"広く知れ渡っていること"},
+  {cat:"重要語句", q:"「欧米」の意味は？", a:"ヨーロッパとアメリカ"},
+  {cat:"重要語句", q:"「画一的」の意味は？", a:"枠にあてはめて、全て同じようにそろえること"},
+  {cat:"重要語句", q:"「架空」の意味は？", a:"事実に基づかない、想像上のこと"},
+  {cat:"重要語句", q:"「価値観」の意味は？", a:"何に価値を見出すかという、個人の考え方"},
+  {cat:"重要語句", q:"「画期的」の意味は？", a:"今までに前例がないほど新しいこと"},
+  {cat:"重要語句", q:"「仮定」の意味は？", a:"仮にそうであると決めること"},
+  {cat:"重要語句", q:"「感覚的」の意味は？", a:"頭でしっかり考えたのではなく、感じたままであるようす"},
+  {cat:"重要語句", q:"「干渉（かんしょう）」の意味は？", a:"他人の事情に割り込み、自分の意見を押しつけること"},
+  {cat:"重要語句", q:"「几帳面（きちょうめん）」の意味は？", a:"何もかもきちんとやりたがる性格であること"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
