@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第1回：原始の人々のくらし／＋α補足）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・③ 補足＋α</span>
+    <span id="counter">1 / 12</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"社会探検・国宝土偶", q:"「縄文のビーナス」という愛称の国宝土偶が出土したのは何県？", a:"長野県（茅野市）"},
+  {cat:"社会探検・国宝土偶", q:"「合掌土偶」という愛称の国宝土偶が出土したのは何県？", a:"青森県（八戸市）"},
+  {cat:"社会探検・国宝土偶", q:"ゴーグルをつけているように見えることからその名がついた、青森県つがる市出土の土偶は？", a:"遮光器土偶（しゃこうきどぐう）"},
+  {cat:"社会探検・国宝土偶", q:"髪の表現が特徴的なことからその名がついた、秋田県湯沢市出土の土偶は？", a:"結髪土偶（けっぱつどぐう）"},
+  {cat:"オプション・探求（縄文犬）", q:"縄文時代の遺跡から骨が出土することがある動物は？", a:"イヌ"},
+  {cat:"オプション・探求（縄文犬）", q:"縄文時代のイヌは、どれくらいの大きさだったと考えられている？", a:"柴犬くらいの大きさ（体高約40cm）"},
+  {cat:"オプション・探求（縄文犬）", q:"縄文時代のイヌの骨は、どのような状態で見つかることがある？", a:"バラバラではなく、丁寧に埋葬された状態でまとまって見つかることがある"},
+  {cat:"オプション・探求（縄文犬）", q:"犬歯が抜けた状態のイヌの骨から、何がわかる？", a:"歯が抜けた後も、人と一緒に生活を続けていたと考えられること"},
+  {cat:"オプション・探求（縄文犬）", q:"これらのことから、縄文時代の人々にとってイヌはどんな存在だったと考えられる？", a:"身近な存在だった（狩りの手伝いなど役割があった可能性が考えられている）"},
+  {cat:"オプション・シナジー（土偶の破損）", q:"発掘される土偶の多くは、どんな状態で見つかる？", a:"こわれた状態で見つかる"},
+  {cat:"オプション・シナジー（土偶の破損）", q:"土偶がこわれている理由は、はっきりとわかっている？", a:"いいえ。はっきりとはわかっておらず、いくつかの説があるだけ（定説はない）"},
+  {cat:"オプション・シナジー（土偶の破損）", q:"土偶がこわれている理由として考えられている説の例を挙げると？", a:"（例）けがや病気が治るように壊した／豊作を願って壊した／人をのろうために壊した、など諸説がある"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
