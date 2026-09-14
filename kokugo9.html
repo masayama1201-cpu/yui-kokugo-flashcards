@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語 語句のたしなみ スライドショー④</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 5vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 4.2vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語④</span>
+    <span id="counter">1 / 46</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  // ==== ことわざ・慣用句（その他） ====
+  {cat:"ことわざ・慣用句（その他）", q:"「折り紙をつける」の意味は？", a:"確かなものだと保証すること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「かたずをのむ」の意味は？", a:"心配しながら、事の成り行きを見守ること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「かっぱの川流れ」の意味は？", a:"名人でも失敗することがあるということ"},
+  {cat:"ことわざ・慣用句（その他）", q:"「枯れ木も山のにぎわい」の意味は？", a:"つまらないものでも、ないよりはましだということ"},
+  {cat:"ことわざ・慣用句（その他）", q:"「かわいい子には旅をさせよ」の意味は？", a:"子どもは甘やかさない方が、将来のためになるということ"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気が気でない」の意味は？", a:"とても心配なこと"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気が引ける」の意味は？", a:"引け目を感じて、気おくれがすること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「漁夫の利」の意味は？", a:"第三者が、苦労せずに利益を得ること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気を配る」の意味は？", a:"あれこれ気をつかうこと"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気を張る」の意味は？", a:"気持ちを引き締め、緊張させること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気を引く」の意味は？", a:"興味や関心をこちらに向けさせること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気を回す」の意味は？", a:"あれこれ気をつかいすぎて、余計な心配をすること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「気を許す」の意味は？", a:"警戒心を解いて、相手を信用すること"},
+  {cat:"ことわざ・慣用句（その他）", q:"「くぎをさす」の意味は？", a:"間違いがないように、前もって念を押しておくこと"},
+  {cat:"ことわざ・慣用句（その他）", q:"「郷に入っては郷に従え」の意味は？", a:"新しい土地や環境に来たら、そこの習慣に従うのがよいということ"},
+  {cat:"ことわざ・慣用句（その他）", q:"「五十歩百歩」の意味は？", a:"少しの違いはあっても、本質的にはほとんど同じであること"},
+
+  // ==== 四字熟語 ====
+  {cat:"四字熟語", q:"「再三再四」の意味は？", a:"たびたび、何度も何度も"},
+  {cat:"四字熟語", q:"「三寒四温」の意味は？", a:"冬から春先にかけて、寒い日と暖かい日がくり返されること"},
+  {cat:"四字熟語", q:"「三々五々」の意味は？", a:"少人数のまとまりが、それぞれ行動するようす"},
+  {cat:"四字熟語", q:"「四苦八苦」の意味は？", a:"非常に苦しむこと"},
+  {cat:"四字熟語", q:"「七転八起」の意味は？", a:"何度失敗してもあきらめないこと"},
+  {cat:"四字熟語", q:"「七転八倒」の意味は？", a:"激しく痛んだり苦しんだりする様子"},
+  {cat:"四字熟語", q:"「十人十色」の意味は？", a:"人それぞれ考え方や好みに違いがあるということ"},
+  {cat:"四字熟語", q:"「首尾一貫」の意味は？", a:"始めから終わりまで同じ方針や態度を通すこと"},
+  {cat:"四字熟語", q:"「千差万別」の意味は？", a:"いろいろに違いがあること"},
+  {cat:"四字熟語", q:"「千変万化」の意味は？", a:"様々に変化すること"},
+  {cat:"四字熟語", q:"「朝三暮四」の意味は？", a:"目先の違いにとらわれ、同じであることに気づかないこと"},
+  {cat:"四字熟語", q:"「二束三文」の意味は？", a:"数は多くても値段が非常に安いこと"},
+  {cat:"四字熟語", q:"「以心伝心」の意味は？", a:"口に出さなくても心が通じ合うこと"},
+  {cat:"四字熟語", q:"「右往左往」の意味は？", a:"混乱してあちこち動き回ること"},
+  {cat:"四字熟語", q:"「自業自得」の意味は？", a:"自分がした悪い行いの報いを自分で受けること"},
+  {cat:"四字熟語", q:"「徹頭徹尾」の意味は？", a:"初めから終わりまで、徹底的に"},
+
+  // ==== 対義語 ====
+  {cat:"対義語", q:"「過失」の対義語は？", a:"故意"},
+  {cat:"対義語", q:"「感情」の対義語は？", a:"理性"},
+  {cat:"対義語", q:"「期待」の対義語は？", a:"失望"},
+  {cat:"対義語", q:"「希望」の対義語は？", a:"絶望"},
+  {cat:"対義語", q:"「許可」の対義語は？", a:"禁止"},
+  {cat:"対義語", q:"「偶然」の対義語は？", a:"必然"},
+  {cat:"対義語", q:"「玄人」の対義語は？", a:"素人"},
+  {cat:"対義語", q:"「軽視」の対義語は？", a:"重視"},
+  {cat:"対義語", q:"「欠点・短所」の対義語は？", a:"美点・長所"},
+  {cat:"対義語", q:"「倹約・節約」の対義語は？", a:"浪費"},
+  {cat:"対義語", q:"「肯定」の対義語は？", a:"否定"},
+  {cat:"対義語", q:"「賛成」の対義語は？", a:"反対"},
+  {cat:"対義語", q:"「支出」の対義語は？", a:"収入"},
+  {cat:"対義語", q:"「子孫」の対義語は？", a:"先祖・祖先"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
