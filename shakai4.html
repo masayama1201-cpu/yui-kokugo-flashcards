@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第2回：ムラからクニへ／① 栄冠ベース・入門編）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・第2回・入門（栄冠）</span>
+    <span id="counter">1 / 50</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"弥生時代・基本", q:"うす手でほとんどもようがない土器が使われるようになった、縄文時代の次の時代を何という？", a:"弥生時代"},
+  {cat:"弥生時代・基本", q:"弥生時代は、今からおよそ何年前に稲作が大陸から伝わって始まった？", a:"約2500年前"},
+  {cat:"弥生時代・基本", q:"稲作は、大陸のどこを経て日本の九州に伝わったとされる？", a:"中国や朝鮮半島を経て"},
+  {cat:"弥生時代・基本", q:"大陸から稲作が広まったことで、ムラの中に生まれた2つの差は？", a:"身分のちがいと、貧富の差"},
+  {cat:"弥生時代・基本", q:"稲を保存するためにつくられるようになった建物は？", a:"高床倉庫"},
+  {cat:"弥生時代・基本", q:"弥生時代に使われるようになった2種類の金属器は？", a:"鉄器と青銅器"},
+  {cat:"弥生時代・道具", q:"田をおこすときに使う木製の道具を2つ挙げると？", a:"くわ・すき"},
+  {cat:"弥生時代・道具", q:"田で農作業をするときに足が沈みこむのを防ぐためにはく道具は？", a:"田げた"},
+  {cat:"弥生時代・道具", q:"稲の穂先を刈り取るのに使われた道具は？", a:"石包丁"},
+  {cat:"弥生時代・道具", q:"稲の脱穀に使われた道具を2つ挙げると？", a:"うす・きね"},
+  {cat:"弥生時代・道具", q:"静岡県にある、大きな水田跡が残る遺跡は？", a:"登呂遺跡"},
+  {cat:"弥生土器", q:"弥生土器はどんな手（厚さ）をしている？", a:"うす手"},
+  {cat:"弥生土器", q:"弥生土器は何色をしている？", a:"赤っぽい色"},
+  {cat:"弥生土器", q:"弥生土器は、もようのあるものが多い？ないものが多い？", a:"もようのないものが多い"},
+  {cat:"弥生土器", q:"弥生土器は、縄文土器と比べてどんな温度で焼かれている？", a:"縄文土器よりも高い温度"},
+  {cat:"金属器", q:"鉄器はおもに何に使われた？", a:"木製農具の刃先や、工具、戦いで使う武器として"},
+  {cat:"金属器", q:"青銅器はおもに何の道具に使われたと考えられている？", a:"祭りの道具"},
+  {cat:"金属器", q:"青銅器には、銅剣・銅矛・銅鏡のほかに何がある？", a:"銅鐸"},
+  {cat:"ムラからクニへ", q:"稲作が広まり人々が共同生活をするようになってできた集まりを何という？", a:"ムラ"},
+  {cat:"ムラからクニへ", q:"ムラの中で人々を指示する指導者が現れたことで、何のちがいが生まれた？", a:"身分のちがい"},
+  {cat:"ムラからクニへ", q:"水や土地をめぐってムラどうしの争いが起きるようになった結果、佐賀県にどんな遺跡ができた？", a:"吉野ヶ里遺跡（争いに備えた二重の壕や物見やぐらがある）"},
+  {cat:"中国の歴史書", q:"紀元前1世紀ごろの日本のようすが書かれている中国の歴史書は？", a:"「漢書」地理志"},
+  {cat:"中国の歴史書", q:"「漢書」地理志によると、紀元前1世紀ごろの日本は何とよばれ、いくつの国に分かれていた？", a:"「倭」とよばれ、100あまりの国に分かれていた"},
+  {cat:"中国の歴史書", q:"紀元後1世紀ごろの日本のようすが書かれている中国の歴史書は？", a:"「後漢書」東夷伝"},
+  {cat:"中国の歴史書", q:"「後漢書」東夷伝によると、紀元後1世紀に中国（漢）に使いを送った国は？", a:"奴（な）国"},
+  {cat:"中国の歴史書", q:"奴国の王が中国の皇帝からさずけられたとされるものは？", a:"金印"},
+  {cat:"中国の歴史書", q:"この金印が発見された島と、その島がある都道府県は？", a:"志賀島（福岡県）"},
+  {cat:"中国の歴史書", q:"紀元後3世紀ごろの日本のようすが書かれている中国の歴史書は？", a:"「魏志」倭人伝"},
+  {cat:"中国の歴史書", q:"「魏志」倭人伝によると、3世紀ごろ30ほどの国をしたがえていた国は？", a:"邪馬台国"},
+  {cat:"中国の歴史書", q:"邪馬台国を治めていた女王は？", a:"卑弥呼"},
+  {cat:"演習・道具", q:"弥生土器の特徴として正しいものは？（縄目文様で厚手／うす手でかたく形が単純）", a:"うす手でかたく、形が単純なものが多い（もようのないものも多い）"},
+  {cat:"演習・道具", q:"稲の穂を刈り取るのに使う道具は？", a:"石包丁"},
+  {cat:"演習・道具", q:"脱穀するために使う木製の道具は？", a:"うす"},
+  {cat:"演習・道具", q:"田げたを使う目的は？", a:"足が田にしずみこむのを防ぐため"},
+  {cat:"演習・道具", q:"石包丁以外の稲作の道具は、おもに何が材料になっている？", a:"木"},
+  {cat:"演習・道具", q:"実用的な工具・農具・武器などに使われた、かたい金属は？", a:"鉄"},
+  {cat:"演習・道具", q:"おもに宝器や祭りの道具に使われた、やわらかくて加工しやすい金属は？", a:"青銅"},
+  {cat:"演習・道具", q:"青銅でつくられた、日本独特の金属器（鐘のような形）は？", a:"銅鐸"},
+  {cat:"演習・遺跡", q:"ナウマンゾウの牙とオオツノジカの角が発見され「月と星」ともよばれる遺跡は？", a:"野尻湖遺跡"},
+  {cat:"演習・遺跡", q:"相沢忠洋が打製石器を発見した遺跡は？", a:"岩宿遺跡"},
+  {cat:"演習・遺跡", q:"多数の貝がらが層をなして積み重なり、当時の食生活がわかる遺跡は？", a:"貝塚（例：大森貝塚）"},
+  {cat:"演習・遺跡", q:"二重の壕や物見やぐらがあり、竪穴住居・高床倉庫の跡や鉄器・青銅器も見つかっている遺跡は？", a:"吉野ヶ里遺跡"},
+  {cat:"演習・遺跡", q:"人々の住居だけでなく、水田の跡も見つかっている静岡県の遺跡は？", a:"登呂遺跡"},
+  {cat:"演習・遺跡", q:"ヒスイや黒曜石など、交易でもたらされたと考えられるものが見つかっている大規模な集落の遺跡は？", a:"三内丸山遺跡"},
+  {cat:"演習・遺跡", q:"なぜ吉野ヶ里遺跡には壕や物見やぐらが見られる？", a:"稲作が広まり、水や土地を求めてムラどうしの争いが起きるようになったから"},
+  {cat:"演習・中国史書", q:"「倭は、帯方の東南の海の向こうにある」で始まる書物は？", a:"「魏志」倭人伝"},
+  {cat:"演習・中国史書", q:"「楽浪のむこうの海の中に倭という国があって」で始まる書物は？", a:"「漢書」地理志"},
+  {cat:"演習・中国史書", q:"「建武中元2年、倭奴国王の使者がみつぎ物をもってきた」と書かれている書物は？", a:"「後漢書」東夷伝"},
+  {cat:"演習・中国史書", q:"魏志倭人伝によると、当時朝貢していたのはいくつの国？", a:"30国ほど"},
+  {cat:"演習・中国史書", q:"このころ日本は何とよばれていた？", a:"倭"},
+  {cat:"演習・中国史書", q:"中国の歴史書に出てくる「帯方」「楽浪」があったのはどこ？", a:"朝鮮（半島）"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
