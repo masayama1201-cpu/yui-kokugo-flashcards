@@ -7,14 +7,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#12181f">
-<title>国語（5年後期：語句のたしなみ＋おくりがな2択クイズ）</title>
+<title>国語（5年後期：語句のたしなみ＋おくりがな2択）</title>
 <style>
   :root {
     --bg: #12181f;
     --card-bg: #1c2733;
     --accent: #ffb347;
     --answer: #7ed6a5;
-    --wrong: #ff6b6b;
     --text: #f5f7fa;
     --sub: #9fb0c3;
   }
@@ -43,7 +42,6 @@
     align-items: center;
     font-size: 2.2vw;
     color: var(--sub);
-    gap: 1.5vw;
   }
   .category {
     background: rgba(255,179,71,0.15);
@@ -51,10 +49,6 @@
     border: 1px solid var(--accent);
     border-radius: 999px;
     padding: 0.6vh 2vw;
-    font-weight: bold;
-  }
-  .score {
-    color: var(--answer);
     font-weight: bold;
   }
   .progress-wrap {
@@ -122,33 +116,25 @@
     width: 100%;
     align-items: center;
   }
-  .choice-btn {
+  .choice-box {
     font-size: 3.4vw;
     font-weight: 800;
-    padding: 2.2vh 4vw;
+    padding: 2vh 4vw;
     border-radius: 18px;
     border: 2px solid var(--sub);
     background: var(--card-bg);
     color: var(--text);
-    cursor: pointer;
     width: 82vw;
     max-width: 560px;
-    transition: all 0.2s ease;
+    opacity: 0.55;
+    transition: all 0.5s ease;
   }
-  .choice-btn:disabled { cursor: default; }
-  .choice-btn.correct {
+  .choice-box.correct {
     border-color: var(--answer);
     background: rgba(126,214,165,0.18);
     color: var(--answer);
-  }
-  .choice-btn.wrong {
-    border-color: var(--wrong);
-    background: rgba(255,107,107,0.18);
-    color: var(--wrong);
-  }
-  .choice-hint {
-    color: var(--sub);
-    font-size: 1.8vw;
+    opacity: 1;
+    transform: scale(1.03);
   }
   .bottombar {
     width: 100%;
@@ -179,7 +165,6 @@
 <div class="wrap">
   <div class="topbar">
     <span class="category" id="category">国語・ことば編</span>
-    <span class="score" id="score"></span>
     <span id="counter">1 / 73</span>
   </div>
   <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
@@ -189,9 +174,8 @@
     <div class="question" id="question">読み込み中…</div>
     <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
     <div class="choice-wrap" id="choiceWrap">
-      <button class="choice-btn" id="choiceBtnA"></button>
-      <button class="choice-btn" id="choiceBtnB"></button>
-      <div class="choice-hint" id="choiceHint">正しいと思う方をタップしよう</div>
+      <div class="choice-box" id="choiceBoxA"></div>
+      <div class="choice-box" id="choiceBoxB"></div>
     </div>
   </div>
 
@@ -199,7 +183,7 @@
     <button class="ctrl" id="playPause">⏸ 一時停止</button>
     <button class="ctrl" id="restart">🔀 シャッフルして最初から</button>
     <button class="ctrl" id="fullscreenBtn">⛶ 全画面</button>
-    <span class="hint">語句問題は7秒→答え5秒で自動切替／おくりがな問題は2択をタップして答えます</span>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
   </div>
 </div>
 
@@ -291,7 +275,6 @@ function shuffle(arr) {
 
 const QUESTION_SECONDS = 7;
 const ANSWER_SECONDS = 5;
-const CHOICE_RESULT_SECONDS = 2.2;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
@@ -302,28 +285,21 @@ let paused = false;
 let timer = null;
 let tickStart = 0;
 let remainingOnPause = QUESTION_SECONDS * 1000;
-let score = { correct: 0, total: 0 };
-let choiceAnswered = false;
+let currentOpts = null; // shuffled [{text, correct}] for the active choice card
 
 const questionEl = document.getElementById("question");
 const qlabelEl = document.getElementById("qlabel");
 const answerBox = document.getElementById("answerBox");
 const answerText = document.getElementById("answerText");
 const choiceWrap = document.getElementById("choiceWrap");
-const choiceBtnA = document.getElementById("choiceBtnA");
-const choiceBtnB = document.getElementById("choiceBtnB");
-const choiceHint = document.getElementById("choiceHint");
+const choiceBoxA = document.getElementById("choiceBoxA");
+const choiceBoxB = document.getElementById("choiceBoxB");
 const categoryEl = document.getElementById("category");
 const counterEl = document.getElementById("counter");
-const scoreEl = document.getElementById("score");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
-
-function updateScore() {
-  scoreEl.textContent = score.total > 0 ? ("正解 " + score.correct + " / " + score.total) : "";
-}
 
 function renderCard() {
   const item = deck[idx];
@@ -331,23 +307,19 @@ function renderCard() {
   counterEl.textContent = (idx + 1) + " / " + deck.length;
   questionEl.textContent = item.q;
   showingAnswer = false;
-  choiceAnswered = false;
 
   if (item.type === "choice") {
     qlabelEl.style.display = "none";
     answerBox.style.display = "none";
     choiceWrap.style.display = "flex";
-    const opts = shuffle([
+    currentOpts = shuffle([
       { text: item.a, correct: true },
       { text: item.wrong, correct: false },
     ]);
-    [choiceBtnA, choiceBtnB].forEach((btn, i) => {
-      btn.textContent = opts[i].text;
-      btn.dataset.correct = opts[i].correct ? "1" : "0";
-      btn.className = "choice-btn";
-      btn.disabled = false;
-    });
-    choiceHint.textContent = "正しいと思う方をタップしよう";
+    choiceBoxA.textContent = currentOpts[0].text;
+    choiceBoxB.textContent = currentOpts[1].text;
+    choiceBoxA.classList.remove("correct");
+    choiceBoxB.classList.remove("correct");
   } else {
     qlabelEl.style.display = "";
     choiceWrap.style.display = "none";
@@ -363,41 +335,35 @@ function renderCard() {
   }
 }
 
-function advance() {
-  idx++;
-  if (idx >= deck.length) {
-    idx = 0;
-    deck = shuffle(DATA);
+function revealAnswer() {
+  const item = deck[idx];
+  if (item.type === "choice") {
+    const boxes = [choiceBoxA, choiceBoxB];
+    boxes.forEach((box, i) => {
+      if (currentOpts[i].correct) box.classList.add("correct");
+    });
+  } else {
+    answerBox.classList.add("show");
   }
-  renderCard();
-  progressBar.style.width = "0%";
-  startProgress();
 }
 
 function step() {
-  const item = deck[idx];
-  if (item.type === "choice") {
-    // choice cards advance only via button tap / handled separately
-    return;
-  }
   if (!showingAnswer) {
-    answerBox.classList.add("show");
+    revealAnswer();
     showingAnswer = true;
   } else {
-    advance();
-    return;
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
   }
   progressBar.style.width = "0%";
   startProgress();
 }
 
 function startProgress() {
-  const item = deck[idx];
-  if (item.type === "choice") {
-    progressBar.style.transition = "none";
-    progressBar.style.width = "0%";
-    return;
-  }
   const seconds = currentPhaseSeconds();
   progressBar.style.transition = "none";
   progressBar.style.width = "0%";
@@ -409,11 +375,6 @@ function startProgress() {
 
 function scheduleNext() {
   clearTimeout(timer);
-  const item = deck[idx];
-  if (item.type === "choice") {
-    // no auto-timer while waiting for the user's tap
-    return;
-  }
   const seconds = currentPhaseSeconds();
   tickStart = Date.now();
   remainingOnPause = seconds * 1000;
@@ -423,52 +384,18 @@ function scheduleNext() {
   }, seconds * 1000);
 }
 
-function handleChoice(btn) {
-  if (choiceAnswered) return;
-  choiceAnswered = true;
-  clearTimeout(timer);
-  const isCorrect = btn.dataset.correct === "1";
-  score.total++;
-  if (isCorrect) score.correct++;
-  updateScore();
-
-  [choiceBtnA, choiceBtnB].forEach((b) => {
-    b.disabled = true;
-    if (b.dataset.correct === "1") b.classList.add("correct");
-    else if (b === btn) b.classList.add("wrong");
-  });
-  choiceHint.textContent = isCorrect ? "正解！" : "おしい、正解は緑の方です";
-
-  timer = setTimeout(() => {
-    if (!paused) advance();
-  }, CHOICE_RESULT_SECONDS * 1000);
-}
-
-choiceBtnA.addEventListener("click", () => handleChoice(choiceBtnA));
-choiceBtnB.addEventListener("click", () => handleChoice(choiceBtnB));
-
 function pause() {
   paused = true;
   clearTimeout(timer);
-  const item = deck[idx];
-  if (item.type !== "choice") {
-    const elapsed = Date.now() - tickStart;
-    remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
-    progressBar.style.transition = "none";
-  }
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
   playPauseBtn.textContent = "▶ 再生";
 }
 
 function resume() {
   paused = false;
   playPauseBtn.textContent = "⏸ 一時停止";
-  const item = deck[idx];
-  if (item.type === "choice") {
-    if (choiceAnswered) {
-      timer = setTimeout(() => { if (!paused) advance(); }, CHOICE_RESULT_SECONDS * 1000);
-    }
-    return;
-  }
   tickStart = Date.now();
   timer = setTimeout(() => {
     step();
@@ -488,8 +415,6 @@ playPauseBtn.addEventListener("click", () => {
 restartBtn.addEventListener("click", () => {
   deck = shuffle(DATA);
   idx = 0;
-  score = { correct: 0, total: 0 };
-  updateScore();
   renderCard();
   progressBar.style.width = "0%";
   if (!paused) {
@@ -521,15 +446,12 @@ fullscreenBtn.addEventListener("click", () => {
 document.addEventListener("fullscreenchange", updateFullscreenBtn);
 document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
-document.querySelector(".card").addEventListener("click", (e) => {
-  const item = deck[idx];
-  if (item.type === "choice") return; // choice cards only respond to the two buttons
+document.querySelector(".card").addEventListener("click", () => {
   clearTimeout(timer);
   step();
   if (!paused) scheduleNext();
 });
 
-updateScore();
 renderCard();
 startProgress();
 scheduleNext();
