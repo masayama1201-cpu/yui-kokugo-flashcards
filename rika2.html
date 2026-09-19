@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>理科（5年後期 第2回：大地の変化 地層からわかること）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.2vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">理科・第2回</span>
+    <span id="counter">1 / 41</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"地層の変化とその原因", q:"力を受けて地面が持ち上がることを何という？", a:"隆起"},
+  {cat:"地層の変化とその原因", q:"力を受けて地面が沈むことを何という？", a:"沈降"},
+  {cat:"地層の変化とその原因", q:"水平に積もった地層に上や下から大きさのちがう力が働いて、地層が傾いた状態になることを何という？", a:"傾斜"},
+  {cat:"地層の変化とその原因", q:"水平に積もった地層に横からゆっくりと押される力が働いて、地層が曲がった状態になることを何という？", a:"しゅう曲"},
+  {cat:"地層の変化とその原因", q:"水平に積もった地層に横から急激に押されたり引っぱられたりする力が働いて、地層が割れてずれることを何という？", a:"断層"},
+  {cat:"地層の変化とその原因", q:"両側から急に引っぱられて地層が割れ、断層面の上の地層が下がる断層を何という？", a:"正断層"},
+  {cat:"地層の変化とその原因", q:"両側から急に押されて地層が割れ、断層面の上の地層が上がる断層を何という？", a:"逆断層"},
+  {cat:"地層の変化とその原因", q:"水中でできた地層が1度隆起して陸地になりしん食されたあと、再び水中に沈んで土砂がたい積するなどして、上下の層の積もった年代に大きな差があることを何という？", a:"不整合"},
+  {cat:"地層の変化とその原因", q:"水平に積もった地層をつらぬくような火山岩の層が見られる場合、何が起きたとわかる？", a:"マグマが通ったあと＝火山活動が起きたこと"},
+  {cat:"地層の変化とその原因", q:"地層の中に火山灰の層がある場合、何がわかる？", a:"付近で火山活動が起きたこと"},
+  {cat:"地層の変化とその原因", q:"しゅう曲していない地層で、1つの層の中で大きい粒が下にあるとき・上にあるとき、それぞれ地層は逆転している？していない？", a:"大きい粒が下＝逆転していない／大きい粒が上＝逆転している"},
+  {cat:"化石からわかること", q:"地層ができた当時の環境がわかる化石を何という？", a:"示相化石"},
+  {cat:"化石からわかること", q:"地層ができた年代がわかる化石を何という？", a:"示準化石"},
+  {cat:"化石からわかること", q:"アサリやハマグリの化石が発見された地層は、どんな場所でできたとわかる？", a:"浅い海底"},
+  {cat:"化石からわかること", q:"サンゴの化石が発見された地層は、どんな環境でできたとわかる？", a:"あたたかくて浅い海底"},
+  {cat:"化石からわかること", q:"シジミの化石が発見された地層は、どんな場所でできたとわかる？", a:"河口付近や海水が入りこむ湖"},
+  {cat:"化石からわかること", q:"示相化石に適しているのはどんな生物の化石？", a:"現在も生きている仲間や同じ種類の生物がいる化石"},
+  {cat:"化石からわかること", q:"示準化石に適しているのはどんな生物の化石？", a:"色々な場所で同じ年代に生活していて、生活していた年代が短い生物の化石"},
+  {cat:"化石からわかること", q:"古生代の示準化石として有名なものは？", a:"サンヨウチュウ"},
+  {cat:"化石からわかること", q:"中生代の示準化石として有名なものは？", a:"アンモナイト"},
+  {cat:"化石からわかること", q:"新生代の示準化石として有名なものは？", a:"マンモス"},
+  {cat:"ボーリング調査からわかる地層", q:"ボーリング調査で得られたデータから何がわかる？", a:"地下の地層のようす"},
+  {cat:"ボーリング調査からわかる地層", q:"ボーリング調査の結果（地表面からの深さ）を実際の標高に置き換えると何ができる？", a:"地層全体のようすをとらえること"},
+  {cat:"ボーリング調査からわかる地層", q:"地層全体のようすがわかると、ボーリング調査をしていない地点についてどんなことができる？", a:"地下のようすを推測できる"},
+  {cat:"地震の伝わり方", q:"地震が発生すると同時に発生する2種類の波は？", a:"P波とS波"},
+  {cat:"地震の伝わり方", q:"初期微動を起こす波は？", a:"P波"},
+  {cat:"地震の伝わり方", q:"主要動を起こす波は？", a:"S波"},
+  {cat:"地震の伝わり方", q:"P波が到着してからS波が到着するまでの時間を何という？", a:"初期微動継続時間"},
+  {cat:"地震の伝わり方", q:"各地点での地震のゆれの大きさを表したものを何という？", a:"震度"},
+  {cat:"地震の伝わり方", q:"地震そのものの大きさを表したものを何という？", a:"マグニチュード"},
+  {cat:"地震の伝わり方", q:"震源からの距離と初期微動継続時間には、どんな関係がある？", a:"正比例の関係"},
+  {cat:"地震の伝わり方", q:"初期微動継続時間がわかると、何を推測できる？", a:"観測地点から震源までの距離"},
+  {cat:"学び直し（地層の変化の演習）", q:"1つの層の中で小石の粒の大きさに注目したとき、粒の大きい方と小さい方ではどちらが先にたい積した？", a:"粒の大きい方が先にたい積した（下にある方が古い）"},
+  {cat:"学び直し（地層の変化の演習）", q:"がけの表面で、地層の境目がでこぼこにけずられている面が見つかったとき、何が原因と考えられる？", a:"地層がいったん地上に出て、風や雨などによってけずられてできた（しん食面）"},
+  {cat:"学び直し（地層の変化の演習）", q:"地層をつらぬくようなずれ（断層）は、どのような自然現象によってできる？", a:"地震"},
+  {cat:"学び直し（地層の変化の演習）", q:"断層ができた後にマグマがしん入した地層と、断層ができる前にマグマがしん入した地層は、どのように見分ける？", a:"マグマの通り道（火成岩の層）が断層でずれているかどうかで見分ける（ずれていれば断層の方が新しい、ずれていなければマグマの方が新しい）"},
+  {cat:"学び直し（地層の変化の演習）", q:"1つの地層で、しゅう曲・断層・不整合・侵食面など複数の変化が見られるとき、どうやって起きた順番を整理する？", a:"それぞれの変化が地層のどこまで影響しているか（ずれているか・切られているか）を手がかりに、影響を受けている方が新しいと考えて順番を整理する"},
+  {cat:"学び直し（ボーリング調査の演習）", q:"複数の地点のボーリング調査結果（地表からの深さ）を比べるときに注意することは？", a:"深さをそのまま比べるのではなく、各地点の標高をもとに実際の高さに直してから比べる"},
+  {cat:"学び直し（ボーリング調査の演習）", q:"地層が全体的に一定方向へかたむいている場合、同じ層の標高は場所によってどうなる？", a:"かたむきの下がる方向に向かって、同じ層の標高がだんだん低くなる"},
+  {cat:"学び直し（地震の演習）", q:"P波の速さがわかっているとき、震源からの距離は何と何がわかれば求められる？", a:"地震発生からP波が届くまでの時間（またはP波の速さと届いた時刻）"},
+  {cat:"学び直し（地震の演習）", q:"ある地点の初期微動継続時間がわかれば、地震の発生時刻はどうやって求められる？", a:"震源からの距離を求め、その距離をP波（またはS波）の速さで割って伝わる時間を求め、観測時刻からその時間をさかのぼって求める"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
