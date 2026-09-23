@@ -151,6 +151,7 @@
   <div class="bottombar">
     <button id="playPause">⏸ 一時停止</button>
     <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="restartOrder">📖 テキスト順に最初から</button>
     <button id="fullscreenBtn">⛶ 全画面</button>
     <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
   </div>
@@ -231,7 +232,11 @@ const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
-let deck = shuffle(DATA);
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  return orderMode === "sequential" ? DATA.slice() : shuffle(DATA);
+}
+let deck = makeDeck();
 let idx = 0;
 let showingAnswer = false;
 let paused = false;
@@ -247,6 +252,7 @@ const counterEl = document.getElementById("counter");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function renderCard() {
@@ -275,7 +281,7 @@ function step() {
     idx++;
     if (idx >= deck.length) {
       idx = 0;
-      deck = shuffle(DATA);
+      deck = makeDeck();
     }
     renderCard();
   }
@@ -333,7 +339,20 @@ playPauseBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
-  deck = shuffle(DATA);
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
   idx = 0;
   renderCard();
   progressBar.style.width = "0%";
