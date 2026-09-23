@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第3回：大和政権と天皇中心の国づくり／本科+栄冠 重要事項）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・第3回・②完成編</span>
+    <span id="counter">1 / 57</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"古墳時代", q:"古墳時代が始まったのはいつごろ？", a:"3世紀半ばごろ"},
+  {cat:"古墳時代", q:"前が四角形、後ろが円形をした古墳の形は？", a:"前方後円墳"},
+  {cat:"古墳時代", q:"大阪府堺市にある、日本最大の前方後円墳は？", a:"大仙（大山）古墳"},
+  {cat:"古墳時代", q:"大仙古墳をふくむ古墳群は、2019年に何に登録された？", a:"世界文化遺産（百舌鳥・古市古墳群）"},
+  {cat:"古墳時代", q:"埴輪はどんな目的で置かれたと考えられている？", a:"古墳（墓）の範囲を示すため、また当時の生活のようすを伝えるため"},
+  {cat:"古墳時代", q:"埴輪にはどんな種類がある？", a:"円筒埴輪、人物埴輪、動物埴輪、家形埴輪など"},
+  {cat:"古墳時代", q:"古墳の基本的な形を4つ挙げると？", a:"円墳・方墳・前方後円墳・前方後方墳"},
+  {cat:"古墳時代", q:"古墳に納められた、亡くなった人の持ち物や武具などを何という？", a:"副葬品"},
+  {cat:"大和政権の広がり", q:"奈良盆地を中心とする有力豪族の連合政権を何という？", a:"大和政権"},
+  {cat:"大和政権の広がり", q:"大和政権の中心人物を何とよぶ？", a:"大王"},
+  {cat:"大和政権の広がり", q:"4世紀末の高句麗と倭（日本）の戦いを伝える、中国東北部にある石碑は？", a:"好太王碑"},
+  {cat:"大和政権の広がり", q:"好太王碑からは、4世紀末に大和政権がどこに勢力を伸ばそうとしていたことがわかる？", a:"朝鮮半島"},
+  {cat:"大和政権の広がり", q:"埼玉県の稲荷山古墳・熊本県の江田船山古墳から見つかった武器には何が刻まれていた？", a:"同じ大王の名前（ワカタケル大王）"},
+  {cat:"大和政権の広がり", q:"このことから、大和政権の勢力はどこまで広がっていたとわかる？", a:"九州地方から関東地方まで"},
+  {cat:"渡来人と大陸文化", q:"中国や朝鮮半島から日本に移り住んだ人々を何という？", a:"渡来人"},
+  {cat:"渡来人と大陸文化", q:"渡来人が5世紀ごろ伝えたとされる文字と教えは？", a:"漢字と儒教"},
+  {cat:"渡来人と大陸文化", q:"6世紀ごろ、百済から伝えられた宗教は？", a:"仏教"},
+  {cat:"渡来人と大陸文化", q:"渡来人が伝えた、高温でかたい土器を焼く技術は？", a:"須恵器をつくる技術（のぼりがま）"},
+  {cat:"渡来人と大陸文化", q:"渡来人はほかにどんな技術を伝えた？", a:"機織りなどの技術"},
+  {cat:"聖徳太子の政治", q:"587年、蘇我氏は仏教の受け入れをめぐって対立していたどの豪族を倒した？", a:"物部氏"},
+  {cat:"聖徳太子の政治", q:"蘇我氏の当主で、物部氏を倒したのはだれ？", a:"蘇我馬子"},
+  {cat:"聖徳太子の政治", q:"593年、推古天皇の摂政となった人物は？", a:"聖徳太子（厩戸皇子）"},
+  {cat:"聖徳太子の政治", q:"「摂政」とは？", a:"天皇に代わって政治をおこなう役職"},
+  {cat:"聖徳太子の政治", q:"603年に定められた、能力によって役人に位をあたえる制度は？", a:"冠位十二階"},
+  {cat:"聖徳太子の政治", q:"604年に定められた、役人の心がまえを示すきまりは？", a:"十七条の憲法"},
+  {cat:"聖徳太子の政治", q:"607年、隋に対等な外交を目指して送られた使者は？", a:"遣隋使（小野妹子）"},
+  {cat:"聖徳太子の政治", q:"聖徳太子が建てたとされる、世界最古の木造建築とされる寺は？", a:"法隆寺"},
+  {cat:"聖徳太子の政治", q:"蘇我氏が建てた、日本で初めての本格的な寺は？", a:"飛鳥寺"},
+  {cat:"聖徳太子の政治", q:"聖徳太子が建てた、日本で初めて「国」がつくった寺は？", a:"四天王寺"},
+  {cat:"聖徳太子の政治", q:"このころの、仏教を中心とした国際色豊かな文化を何という？", a:"飛鳥文化"},
+  {cat:"聖徳太子の政治", q:"飛鳥文化には、インドや中国のほか、どの地域の影響も見られる？", a:"ペルシャやギリシャなど西方の文化"},
+  {cat:"蘇我氏と天皇家の系図", q:"蘇我稲目の子で、物部氏を倒したのはだれ？", a:"蘇我馬子"},
+  {cat:"蘇我氏と天皇家の系図", q:"蘇我馬子の子は？", a:"蘇我蝦夷"},
+  {cat:"蘇我氏と天皇家の系図", q:"蘇我蝦夷の子は？", a:"蘇我入鹿"},
+  {cat:"蘇我氏と天皇家の系図", q:"聖徳太子（厩戸皇子）の父にあたる天皇は？", a:"用明天皇"},
+  {cat:"蘇我氏と天皇家の系図", q:"聖徳太子の子は？", a:"山背大兄王"},
+  {cat:"蘇我氏と天皇家の系図", q:"蘇我入鹿が攻めて自害に追いこんだのはだれ？", a:"山背大兄王"},
+  {cat:"大化の改新", q:"645年、中大兄皇子と中臣鎌足が蘇我入鹿を倒した事件は？", a:"乙巳の変"},
+  {cat:"大化の改新", q:"乙巳の変のあと始まった、天皇中心の国づくりを目指す改革を何という？", a:"大化の改新"},
+  {cat:"大化の改新", q:"646年に出された改革の方針を示す文書は？", a:"改新の詔"},
+  {cat:"大化の改新", q:"改新の詔で示された、豪族の私有地・私有民をなくす方針は？", a:"公地公民"},
+  {cat:"大化の改新", q:"人々の土地や人口を記録するためにつくられることになったものは？", a:"戸籍"},
+  {cat:"大化の改新", q:"戸籍にもとづいて人々に田を分けあたえるしくみは？", a:"班田収授（の法）"},
+  {cat:"大化の改新", q:"670年につくられた、日本で最初の全国的な戸籍は？", a:"庚午年籍"},
+  {cat:"白村江・壬申の乱", q:"663年、日本（百済救援軍）が唐・新羅の連合軍に大敗した戦いは？", a:"白村江の戦い"},
+  {cat:"白村江・壬申の乱", q:"白村江の戦いのあと、中大兄皇子が都を移した場所は？", a:"近江大津宮（滋賀県）"},
+  {cat:"白村江・壬申の乱", q:"668年に即位した中大兄皇子は何天皇となった？", a:"天智天皇"},
+  {cat:"白村江・壬申の乱", q:"天智天皇と天武天皇（大海人皇子）は、舒明天皇と誰の子？", a:"皇極天皇（斉明天皇）"},
+  {cat:"白村江・壬申の乱", q:"天智天皇の死後、672年に起きたあとつぎ争いは？", a:"壬申の乱"},
+  {cat:"白村江・壬申の乱", q:"壬申の乱で戦ったのはだれとだれ？", a:"天智天皇の弟の大海人皇子と、天智天皇の子の大友皇子"},
+  {cat:"白村江・壬申の乱", q:"壬申の乱に勝った大海人皇子が即位してなった天皇は？", a:"天武天皇"},
+  {cat:"白村江・壬申の乱", q:"天智天皇の子で、壬申の乱で敗れたのはだれ？", a:"弘文天皇（大友皇子）"},
+  {cat:"大宝律令・藤原京", q:"天武天皇の后で、天武天皇の死後に即位した天皇は？", a:"持統天皇"},
+  {cat:"大宝律令・藤原京", q:"天武天皇と持統天皇の子は？", a:"草壁皇子"},
+  {cat:"大宝律令・藤原京", q:"持統天皇のころにつくられた、中国にならったはじめての本格的な都は？", a:"藤原京"},
+  {cat:"大宝律令・藤原京", q:"701年に完成した、国のしくみを定めた法律は？", a:"大宝律令"},
+  {cat:"大宝律令・藤原京", q:"大宝律令が完成したのは何天皇のとき？", a:"文武天皇"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
