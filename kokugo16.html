@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語（5年後期 第4回：熟語の組み立て）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語・熟語の組み立て編</span>
+    <span id="counter">1 / 59</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"熟語の組み立て（栄冠①）", q:"「純白」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。純粋な白、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「氷結」の熟語の組み立ては？", a:"上下の字が主語・述語の関係になる組み立て。氷が結する（こおる）、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「曲線」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。曲がった線、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「加熱」の熟語の組み立ては？", a:"下の字に「を」をつけて上にかえって読む組み立て。熱を加える、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「勝負」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。勝つ⇔負ける。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「豊富」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。豊か＋富む、どちらも「多い」という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「日没」の熟語の組み立ては？", a:"上下の字が主語・述語の関係になる組み立て。日が没する（しずむ）、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「読書」の熟語の組み立ては？", a:"下の字に「を」をつけて上にかえって読む組み立て。書を読む、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「初雪」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。初めての雪、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「天地」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。天⇔地。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「市立」の熟語の組み立ては？", a:"上下の字が主語・述語の関係になる組み立て。市が立てる（つくる）、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「衣服」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。衣＋服、どちらも「きもの」という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「進退」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。進む⇔退く。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「非番」の熟語の組み立ては？", a:"上の字が下の字を打ち消す組み立て。「非」＋「番（当番）」で、当番でない、という意味。"},
+  {cat:"熟語の組み立て（栄冠①）", q:"「除外」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。除く＋外（はずす）、どちらも「のける」という意味。"},
+
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　改行／出題／加熱／倉庫", a:"倉庫（似た意味の漢字の組み合わせ＝倉＋庫）。ほかの3つ（改行・出題・加熱）は下の字を「を・に」で上にかえって読む組み立て（例：熱を加える）。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　未定／深海／細道／民家", a:"未定（上の字が下の字を打ち消す組み立て）。ほかの3つ（深海・細道・民家）は上の字が下の字をくわしく説明する組み立て（深い海／細い道／民の家）。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　生活／暗黒／青空／幸福", a:"青空（上の字が下の字をくわしく説明する組み立て＝青い空）。ほかの3つ（生活・暗黒・幸福）は似た意味の漢字の組み合わせ。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　明暗／育児／古今／利害", a:"育児（下の字を「を」で上にかえって読む組み立て＝児を育てる）。ほかの3つ（明暗・古今・利害）は対になる意味の漢字の組み合わせ。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　未来／残暑／無力／不調", a:"残暑（上の字が下の字をくわしく説明する組み立て＝残る暑さ）。ほかの3つ（未来・無力・不調）は上の字が下の字を打ち消す組み立て。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　牛乳／清流／道路／高熱", a:"道路（似た意味の漢字の組み合わせ＝道＋路）。ほかの3つ（牛乳・清流・高熱）は上の字が下の字をくわしく説明する組み立て。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　就職／国立／日照／市営", a:"就職（下の字を「に」で上にかえって読む組み立て＝職に就く）。ほかの3つ（国立・日照・市営）は主語・述語の関係（国が立てる／日が照る／市が営む）。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　特急／国連／新旧／日赤", a:"新旧（対になる意味の漢字の組み合わせ＝新しい⇔旧い）。ほかの3つ（特急・国連・日赤）は長い言葉を省略した略語（特別急行・国際連合・日本赤十字社）。"},
+  {cat:"熟語の組み立て（栄冠②・仲間はずれ）", q:"次の4つの熟語のうち、組み立てが1つだけ違うものはどれ？　白球／肉食／自走／地震", a:"地震（主語・述語の関係＝地が震える）。ほかの3つ（白球・肉食・自走）は上の字が下の字の様子・内容を表す組み立て（白い球／肉を食べる／自分で走る）。"},
+
+  {cat:"熟語の組み立て（本科①）", q:"「養蚕」の熟語の組み立ては？", a:"下の字に「を」をつけて上にかえって読む組み立て。蚕を養う、という意味。"},
+  {cat:"熟語の組み立て（本科①）", q:"「納税」の熟語の組み立ては？", a:"下の字に「を」をつけて上にかえって読む組み立て。税を納める、という意味。"},
+  {cat:"熟語の組み立て（本科①）", q:"「熱風」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。熱い風、という意味。"},
+  {cat:"熟語の組み立て（本科①）", q:"「未完」の熟語の組み立ては？", a:"上の字が下の字を打ち消す組み立て。「未」＋「完（完成）」で、まだ完成していない、という意味。"},
+
+  {cat:"熟語の組み立て（本科②）", q:"「表現」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。表す＋現す、どちらも「あらわす」という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「国旗」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。国の旗、という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「点灯」の熟語の組み立ては？", a:"下の字に「を」をつけて上にかえって読む組み立て。灯を点ける、という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「自己」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。自分＋己、どちらも「自分」という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「不幸」の熟語の組み立ては？", a:"上の字が下の字を打ち消す組み立て。「不」＋「幸（幸せ）」で、幸せでない、という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「歓喜」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。歓ぶ＋喜ぶ、どちらも「よろこぶ」という意味。"},
+  {cat:"熟語の組み立て（本科②）", q:"「寒暖」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。寒い⇔暖かい。"},
+  {cat:"熟語の組み立て（本科②）", q:"「首尾」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。首（はじめ）⇔尾（おわり）。"},
+
+  {cat:"熟語の組み立て（本科③）", q:"「幸福」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。幸せ＋福、どちらも「しあわせ」という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「非常」の熟語の組み立ては？", a:"上の字が下の字を打ち消す組み立て。「非」＋「常（ふだん）」で、ふだんとちがう、という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「往復」の熟語の組み立ては？", a:"上下の字が対になる（反対の）意味を組み合わせた組み立て。往く⇔復る（かえる）。"},
+  {cat:"熟語の組み立て（本科③）", q:"「商売」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。商う＋売る、どちらも「うる」という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「帰国」の熟語の組み立ては？", a:"下の字に「に」をつけて上にかえって読む組み立て。国に帰る、という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「暗黒」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。暗い＋黒い、どちらも「くらい」という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「血管」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。血の管（くだ）、という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「身体」の熟語の組み立ては？", a:"上下の字が似た意味を組み合わせた組み立て。身＋体、どちらも「からだ」という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「白紙」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。白い紙、という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「日銀」の熟語の組み立ては？", a:"長い言葉を省略した略語。「日本銀行」を短くしたもの。"},
+  {cat:"熟語の組み立て（本科③）", q:"「流星」の熟語の組み立ては？", a:"上の字が下の字をくわしく説明する組み立て（修飾）。流れる星、という意味。"},
+  {cat:"熟語の組み立て（本科③）", q:"「県立」の熟語の組み立ては？", a:"上下の字が主語・述語の関係になる組み立て。県が立てる（つくる）、という意味。"},
+
+  {cat:"熟語の組み立て（略語）", q:"「特急」は何という言葉を省略したもの？", a:"「特別急行」を省略した略語。"},
+  {cat:"熟語の組み立て（略語）", q:"「卒論」は何という言葉を省略したもの？", a:"「卒業論文」を省略した略語。"},
+  {cat:"熟語の組み立て（略語）", q:"「短大」は何という言葉を省略したもの？", a:"「短期大学」を省略した略語。"},
+  {cat:"熟語の組み立て（略語）", q:"「日赤」は何という言葉を省略したもの？", a:"「日本赤十字社」を省略した略語。"},
+
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、下の字に「を」「に」をつけて上にかえって読むと意味がはっきりするものを何という？", a:"動詞＋目的語の組み立て（例：読書＝書を読む、加熱＝熱を加える、帰国＝国に帰る）"},
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、上下の漢字が反対（対）の意味になっているものを何という？", a:"対になる意味の組み立て（例：勝負・天地・進退・往復・寒暖）"},
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、上下の漢字が似た意味になっているものを何という？", a:"似た意味の組み立て（例：豊富・衣服・除外・表現・身体）"},
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、上の字が下の字を打ち消しているものを何という？よく使われる漢字は？", a:"打ち消しの組み立て。「非・未・不・無」などが上につく（例：非番・未完・不幸・無力）"},
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、上の字が下の字をくわしく説明（修飾）しているものを何という？", a:"修飾の組み立て（例：純白・曲線・初雪・青空・血管・流星）"},
+  {cat:"熟語の組み立て（きまり）", q:"熟語の組み立てで、上下の漢字が「主語・述語」の関係になっているものを何という？", a:"主語・述語の組み立て（例：氷結＝氷が結する、日没＝日が没する、県立＝県が立てる）"},
+  {cat:"熟語の組み立て（きまり）", q:"二字熟語の6つの組み立てパターン以外に、3字以上の言葉を省略してできた熟語があります。これを何という？", a:"略語（例：国際連合→国連、特別急行→特急、日本赤十字社→日赤）"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
