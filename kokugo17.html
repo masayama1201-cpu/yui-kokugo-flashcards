@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語 語句のたしなみ（P28〜31・Aランク）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.5;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .meaning {
+    display: block;
+    font-size: 2.4vw;
+    color: var(--sub);
+    margin-top: 1vh;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">語句のたしなみ（P28〜31・Aランク）</span>
+    <span id="counter">1 / 52</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span><span class="meaning" id="meaningText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"P28", q:"体を悪くしたと聞いていましたが、最近の（　）はどうですか。", a:"あんばい", m:"具合。"},
+  {cat:"P28", q:"代理を務めつつ、（　）組織に君臨しようとたくらむ。", a:"あわよくば", m:"うまくいけば。"},
+  {cat:"P28", q:"事件の（　）を聞いて、何があったか理解しよう。", a:"あらまし", m:"おおまかな内容。"},
+  {cat:"P28", q:"アメリカ大統領の名前は、（　）知れ渡っている。", a:"あまねく", m:"及ばないところがなく、一般的に（＝広く行き渡って）。"},
+  {cat:"P28", q:"雨が激しく降ってきた。（　）風も出てきた。", a:"あまつさえ", m:"さらに。（悪いことが重なる時に使う）"},
+  {cat:"P28", q:"彼の言っていることは、（　）間違いだとも言えない。", a:"あながち", m:"必ずしも。"},
+  {cat:"P28", q:"優等生の彼をほめ、息子が宿題さえしないことを（　）。", a:"あてこする", m:"他のことを口実にして、相手の悪口や皮肉を言う。"},
+  {cat:"P28", q:"空に浮かぶ雲は、（　）わたがしのようだ。", a:"あたかも", m:"まるで。"},
+  {cat:"P28", q:"ご希望に添えませんが、（　）ご了承ください。", a:"あしからず", m:"悪く思わないで。"},
+  {cat:"P28", q:"君が（　）嘘をつきとおすなら、もう絶交だよ。", a:"あくまで", m:"どこまでも。"},
+  {cat:"P28", q:"彼は趣味も持たず、生きるために（　）働いてきた。", a:"あくせく", m:"小さなことを気にして落ち着かないさま。"},
+  {cat:"P28", q:"嫌いなピーマンを出され、（　）にいやな顔をする。", a:"あからさま", m:"明白なさま。"},
+  {cat:"P28", q:"坂本龍馬は、（　）最期をとげた。", a:"あえない", m:"あっけない。"},
+
+  {cat:"P29", q:"彼の不自然な態度を（　）。", a:"いぶかる", m:"疑わしく思う。"},
+  {cat:"P29", q:"チームの敗北に私の無気力が関係しているのは（　）。", a:"いなめない", m:"否定できない。"},
+  {cat:"P29", q:"世話を（　）ことなく、低学年と交流する六年生の姿に感心する。", a:"いとう", m:"いやがって避ける。"},
+  {cat:"P29", q:"先生は、命あるものを（　）心が大切だと生徒たちに説いた。", a:"いつくしむ", m:"弱者などをかわいがって大切にする。"},
+  {cat:"P29", q:"私は、画面に映し出された惨劇を見て（　）気持ちになった。", a:"いたたまらない", m:"じっとしていられない。（「いたたまれない」ともいう）"},
+  {cat:"P29", q:"命は永遠ではないのだから、（　）時を過ごしてはならない。", a:"いたずらに", m:"無駄に。"},
+  {cat:"P29", q:"君の弟はまだ（　）な子どもなのだから、そう怒るな。", a:"いたいけ", m:"子どものいじらしいさまや、かわいいさま。"},
+  {cat:"P29", q:"朝早くから夜遅くまで、ボランティア活動に（　）。", a:"いそしむ", m:"熱心にはげむ。"},
+  {cat:"P29", q:"幼い子が欲しいものを我慢する姿は（　）。", a:"いじらしい", m:"幼い者の様子が同情したくなるほどかわいそうだ。"},
+  {cat:"P29", q:"肝臓を悪くした父に、酒をやめるように（　）。", a:"いさめる", m:"（主に目上の人に対して）欠点を言って改めさせようとする。"},
+  {cat:"P29", q:"彼を泣かせるに至った（　）を話し、理解を得る。", a:"いきさつ", m:"ことのなりゆき。"},
+  {cat:"P29", q:"実力を（　）発揮して、チームを勝利に導く。", a:"いかんなく", m:"申し分なく十分に。"},
+
+  {cat:"P30", q:"みんなの前で突然、秘密を暴露され、（　）。", a:"うろたえる", m:"どうしてよいか分からず慌てる。"},
+  {cat:"P30", q:"二人は神前で、（　）様子で深く頭を下げた。", a:"うやうやしい", m:"相手を敬い、礼儀正しく丁寧なさま。"},
+  {cat:"P30", q:"人を見下す言動が多い彼女を（　）人は少なくない。", a:"うとましい", m:"好ましくない。"},
+  {cat:"P30", q:"何とも（　）話なので、完全には信じられない。", a:"うさんくさい", m:"様子や態度がなんとなくあやしい。"},
+  {cat:"P30", q:"自分が犯した罪なのに、無実であると平気な顔で（　）。", a:"うそぶく", m:"わざととぼけたり、大きなことを言ったりする。"},
+  {cat:"P30", q:"夢か（　）か分からない不思議な気持ち。", a:"うつつ", m:"正気。現実。"},
+  {cat:"P30", q:"大好きな人にふられ、しばらくは（　）な日々を過ごした。", a:"うつろ", m:"生気がないさま。ぼんやりしているさま。"},
+  {cat:"P30", q:"こんな所で出会ったのも何かの（　）だろう。", a:"いんねん", m:"運命によってつながっている関係。"},
+  {cat:"P30", q:"新入生の（　）姿に、思わずほほえむ。", a:"ういういしい", m:"物慣れない感じで新鮮にみえる。"},
+  {cat:"P30", q:"土の下でたくさんの虫が（　）さまを想像するとぞっとする。", a:"うごめく", m:"もぞもぞと動く。"},
+  {cat:"P30", q:"海に行く予定をだめにした雨が（　）。", a:"いまいましい", m:"腹立たしい。"},
+  {cat:"P30", q:"大量得点をしたところで、監督は選手に再度油断を（　）。", a:"いましめる", m:"悪いことをしないよう、教えさとして禁止する。"},
+  {cat:"P30", q:"ひとりでに割れたコップは、（　）ことが起きる前兆か。", a:"いまわしい", m:"いやで不愉快なこと。"},
+
+  {cat:"P31", q:"この件に詳しい君に、（　）頼みたいことがある。", a:"おりいって", m:"ぜひとも。"},
+  {cat:"P31", q:"斡揚げをしようとしていたら、（　）風が吹いてきた。", a:"おりしも", m:"ちょうどその時。"},
+  {cat:"P31", q:"祖父を介護する母の（　）働きぶりに頭が下がる。", a:"かいがいしい", m:"手際よく、骨身を惜しまず働くさま。"},
+  {cat:"P31", q:"川を埋め尽くすほどの（　）鮭が、次々と川をのぼっていく。", a:"おびただしい", m:"非常に数の多い。"},
+  {cat:"P31", q:"出世をたくらみ、上司に（　）。", a:"おもねる", m:"人の機嫌をとって気に入られようとする。"},
+  {cat:"P31", q:"手放しにほめられ、（　）気持ちになり、ほおがゆるんだ。", a:"おもはゆい", m:"きまりが悪い。恥ずかしい。"},
+  {cat:"P31", q:"本番をむかえ、心を落ち着かせて（　）行動を開始する。", a:"おもむろに", m:"落ち着いてゆっくり行動するさま。"},
+  {cat:"P31", q:"日々のトレーニングを（　）と、よい結果は出ないだろう。", a:"おこたる", m:"なまけていい加減にする。"},
+  {cat:"P31", q:"自分がチャンピオンであると（　）ことなく、謙虚さを貫く。", a:"おごる", m:"権力や財力を頼みにして、我が儘にふるまう。"},
+  {cat:"P31", q:"彼女は、四教科とも（　）よくできた子どもだった。", a:"おしなべて", m:"全体に渡って。"},
+  {cat:"P31", q:"金儲けが見え見えの（　）商売方法。", a:"えげつない", m:"露骨でいやらしい。"},
+  {cat:"P31", q:"今までの苦労を（　）で、なおも仕事を続ける。", a:"おくびにもださない", m:"それらしい様子もみせず、また口にもしない。（「おくび」とは、げっぷのこと）"},
+  {cat:"P31", q:"誰の前でも自己主張しすぎない彼女は（　）人だと思う。", a:"おくゆかしい", m:"上品であったり、動作などが控え目だったりする。"},
+  {cat:"P31", q:"先輩を差し置いて意見するのは（　）と思う。", a:"おこがましい", m:"生意気だ。"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let deck = shuffle(DATA);
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const meaningText = document.getElementById("meaningText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  meaningText.textContent = item.m;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = shuffle(DATA);
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  deck = shuffle(DATA);
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
