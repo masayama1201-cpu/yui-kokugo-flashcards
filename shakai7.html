@@ -146,6 +146,7 @@
   <div class="topbar">
     <span class="category" id="category">社会・第3回・入門（栄冠）</span>
     <span id="counter">1 / 38</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 38</span>
   </div>
   <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
 
@@ -159,6 +160,8 @@
     <button id="playPause">⏸ 一時停止</button>
     <button id="restart">🔀 シャッフルして最初から</button>
     <button id="restartOrder">📖 テキスト順に最初から</button>
+    <button id="masterBtn">✓ おぼえた（非表示）</button>
+    <button id="resetMastered">🔄 おぼえた記録をリセット</button>
     <button id="fullscreenBtn">⛶ 全画面</button>
     <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
   </div>
@@ -220,12 +223,27 @@ const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("shakai7_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("shakai7_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
 let orderMode = "shuffle"; // "shuffle" | "sequential"
 function makeDeck() {
-  return orderMode === "sequential" ? DATA.slice() : shuffle(DATA);
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
 }
 let deck = makeDeck();
 let idx = 0;
+let finished = false;
 let showingAnswer = false;
 let paused = false;
 let timer = null;
@@ -237,13 +255,33 @@ const answerBox = document.getElementById("answerBox");
 const answerText = document.getElementById("answerText");
 const categoryEl = document.getElementById("category");
 const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
 const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
 function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.innerHTML = "🔄 おぼえた記録をリセットするとまた挑戦できます。";
+    progressBar.style.width = "0%";
+    return;
+  }
+  finished = false;
   const item = deck[idx];
   categoryEl.textContent = item.cat;
   counterEl.textContent = (idx + 1) + " / " + deck.length;
@@ -262,6 +300,7 @@ function renderCard() {
 }
 
 function step() {
+  if (finished) return;
   if (!showingAnswer) {
     answerBox.classList.add("show");
     showingAnswer = true;
@@ -332,7 +371,7 @@ restartBtn.addEventListener("click", () => {
   idx = 0;
   renderCard();
   progressBar.style.width = "0%";
-  if (!paused) {
+  if (!paused && !finished) {
     startProgress();
     scheduleNext();
   }
@@ -344,7 +383,39 @@ restartOrderBtn.addEventListener("click", () => {
   idx = 0;
   renderCard();
   progressBar.style.width = "0%";
-  if (!paused) {
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused && !finished) {
     startProgress();
     scheduleNext();
   }
@@ -379,6 +450,7 @@ document.querySelector(".card").addEventListener("click", () => {
   if (!paused) scheduleNext();
 });
 
+updateMasteredCounter();
 renderCard();
 startProgress();
 scheduleNext();
