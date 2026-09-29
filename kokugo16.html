@@ -123,7 +123,7 @@
     color: var(--text);
     border: none;
     border-radius: 999px;
-    padding: 1vh 2.2vw;
+    padding: 2.5vh 2.2vw;
     font-size: 1.8vw;
     cursor: pointer;
   }
@@ -149,10 +149,8 @@
   </div>
 
   <div class="bottombar">
-    <button id="playPause">⏸ 一時停止</button>
-    <button id="restart">🔀 シャッフルして最初から</button>
-    <button id="fullscreenBtn">⛶ 全画面</button>
-    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
   </div>
 </div>
 
@@ -248,7 +246,6 @@ const counterEl = document.getElementById("counter");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
-const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function renderCard() {
   const item = deck[idx];
@@ -316,7 +313,7 @@ function pause() {
 
 function resume() {
   paused = false;
-  playPauseBtn.textContent = "⏸ 一時停止";
+  playPauseBtn.textContent = "⏸ 停止";
   tickStart = Date.now();
   timer = setTimeout(() => {
     step();
@@ -343,29 +340,6 @@ restartBtn.addEventListener("click", () => {
     scheduleNext();
   }
 });
-
-function isFullscreen() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement);
-}
-function updateFullscreenBtn() {
-  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
-}
-fullscreenBtn.addEventListener("click", () => {
-  const el = document.documentElement;
-  if (!isFullscreen()) {
-    const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) {
-      req.call(el);
-    } else {
-      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
-    }
-  } else {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    if (exit) exit.call(document);
-  }
-});
-document.addEventListener("fullscreenchange", updateFullscreenBtn);
-document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
 document.querySelector(".card").addEventListener("click", () => {
   clearTimeout(timer);
