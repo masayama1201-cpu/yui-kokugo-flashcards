@@ -166,6 +166,7 @@
   <div class="topbar">
     <span class="category" id="category">国語・かなづかいと符号</span>
     <span id="counter">1 / 37</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 37</span>
   </div>
   <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
 
@@ -182,6 +183,9 @@
   <div class="bottombar">
     <button class="ctrl" id="playPause">⏸ 停止</button>
     <button class="ctrl" id="restart">🔀 シャッフル</button>
+    <button class="ctrl" id="restartOrder">📖 テキスト順</button>
+    <button class="ctrl" id="masterBtn">✓ 覚えた</button>
+    <button class="ctrl" id="resetMastered">🔄 リセット</button>
   </div>
 </div>
 
@@ -251,7 +255,25 @@ const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
-let deck = shuffle(DATA);
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("kokugo15_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("kokugo15_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
 let idx = 0;
 let showingAnswer = false;
 let paused = false;
@@ -259,6 +281,7 @@ let timer = null;
 let tickStart = 0;
 let remainingOnPause = QUESTION_SECONDS * 1000;
 let currentOpts = null; // shuffled [{text, correct}] for the active choice card
+let finished = false;
 
 const questionEl = document.getElementById("question");
 const qlabelEl = document.getElementById("qlabel");
@@ -269,11 +292,35 @@ const choiceBoxA = document.getElementById("choiceBoxA");
 const choiceBoxB = document.getElementById("choiceBoxB");
 const categoryEl = document.getElementById("category");
 const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
 const progressBar = document.getElementById("progressBar");
 const playPauseBtn = document.getElementById("playPause");
 const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
 
 function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    qlabelEl.style.display = "none";
+    choiceWrap.style.display = "none";
+    answerBox.style.display = "";
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    questionEl.textContent = "🎉 全問「おぼえた」にしました！";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.textContent = "🔄 リセットするとまた挑戦できます。";
+    progressBar.style.width = "0%";
+    return;
+  }
+  finished = false;
   const item = deck[idx];
   categoryEl.textContent = item.cat;
   counterEl.textContent = (idx + 1) + " / " + deck.length;
@@ -320,6 +367,7 @@ function revealAnswer() {
 }
 
 function step() {
+  if (finished) return;
   if (!showingAnswer) {
     revealAnswer();
     showingAnswer = true;
@@ -327,7 +375,7 @@ function step() {
     idx++;
     if (idx >= deck.length) {
       idx = 0;
-      deck = shuffle(DATA);
+      deck = makeDeck();
     }
     renderCard();
   }
@@ -385,11 +433,56 @@ playPauseBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
-  deck = shuffle(DATA);
+  orderMode = "shuffle";
+  deck = makeDeck();
   idx = 0;
   renderCard();
   progressBar.style.width = "0%";
-  if (!paused) {
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused && !finished) {
     startProgress();
     scheduleNext();
   }
@@ -401,6 +494,7 @@ document.querySelector(".card").addEventListener("click", () => {
   if (!paused) scheduleNext();
 });
 
+updateMasteredCounter();
 renderCard();
 startProgress();
 scheduleNext();
