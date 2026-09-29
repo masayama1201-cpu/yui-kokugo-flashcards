@@ -164,7 +164,7 @@
     <button id="restartOrder">📖 テキスト順</button>
     <button id="masterBtn">✓ 覚えた</button>
     <button id="resetMastered">🔄 リセット</button>
-    <button id="fullscreenBtn">⛶ 全画面</button>  </div>
+  </div>
 </div>
 
 <script>
@@ -262,7 +262,6 @@ const restartBtn = document.getElementById("restart");
 const restartOrderBtn = document.getElementById("restartOrder");
 const masterBtn = document.getElementById("masterBtn");
 const resetMasteredBtn = document.getElementById("resetMastered");
-const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function updateMasteredCounter() {
   masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
@@ -420,29 +419,6 @@ resetMasteredBtn.addEventListener("click", () => {
     scheduleNext();
   }
 });
-
-function isFullscreen() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement);
-}
-function updateFullscreenBtn() {
-  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
-}
-fullscreenBtn.addEventListener("click", () => {
-  const el = document.documentElement;
-  if (!isFullscreen()) {
-    const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) {
-      req.call(el);
-    } else {
-      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
-    }
-  } else {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    if (exit) exit.call(document);
-  }
-});
-document.addEventListener("fullscreenchange", updateFullscreenBtn);
-document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
 document.querySelector(".card").addEventListener("click", () => {
   clearTimeout(timer);
