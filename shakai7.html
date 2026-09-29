@@ -157,11 +157,11 @@
   </div>
 
   <div class="bottombar">
-    <button id="playPause">⏸ 一時停止</button>
-    <button id="restart">🔀 シャッフルして最初から</button>
-    <button id="restartOrder">📖 テキスト順に最初から</button>
-    <button id="masterBtn">✓ おぼえた（非表示）</button>
-    <button id="resetMastered">🔄 おぼえた記録をリセット</button>
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
     <button id="fullscreenBtn">⛶ 全画面</button>
     <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
   </div>
@@ -348,7 +348,7 @@ function pause() {
 
 function resume() {
   paused = false;
-  playPauseBtn.textContent = "⏸ 一時停止";
+  playPauseBtn.textContent = "⏸ 停止";
   tickStart = Date.now();
   timer = setTimeout(() => {
     step();
