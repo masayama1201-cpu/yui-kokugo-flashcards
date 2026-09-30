@@ -277,7 +277,7 @@ function renderCard() {
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
     answerText.innerHTML = "🔄 おぼえた記録をリセットするとまた挑戦できます。";
-    progressBar.style.width = "0%";
+    resetProgressBar();
     return;
   }
   finished = false;
@@ -311,14 +311,18 @@ function step() {
     }
     renderCard();
   }
-  progressBar.style.width = "0%";
   startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
 }
 
 function startProgress() {
   const seconds = currentPhaseSeconds();
-  progressBar.style.transition = "none";
-  progressBar.style.width = "0%";
+  resetProgressBar();
   requestAnimationFrame(() => {
     progressBar.style.transition = "width " + seconds + "s linear";
     progressBar.style.width = "100%";
@@ -369,7 +373,7 @@ restartBtn.addEventListener("click", () => {
   deck = makeDeck();
   idx = 0;
   renderCard();
-  progressBar.style.width = "0%";
+  resetProgressBar();
   if (!paused && !finished) {
     startProgress();
     scheduleNext();
@@ -381,7 +385,7 @@ restartOrderBtn.addEventListener("click", () => {
   deck = makeDeck();
   idx = 0;
   renderCard();
-  progressBar.style.width = "0%";
+  resetProgressBar();
   if (!paused && !finished) {
     startProgress();
     scheduleNext();
@@ -398,7 +402,7 @@ masterBtn.addEventListener("click", () => {
   deck.splice(idx, 1);
   if (idx >= deck.length) idx = 0;
   renderCard();
-  progressBar.style.width = "0%";
+  resetProgressBar();
   if (!paused && !finished) {
     startProgress();
     scheduleNext();
@@ -413,7 +417,7 @@ resetMasteredBtn.addEventListener("click", () => {
   deck = makeDeck();
   idx = 0;
   renderCard();
-  progressBar.style.width = "0%";
+  resetProgressBar();
   if (!paused && !finished) {
     startProgress();
     scheduleNext();
