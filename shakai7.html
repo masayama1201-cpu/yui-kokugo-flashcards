@@ -218,6 +218,7 @@ function shuffle(arr) {
   return a;
 }
 
+const CELEBRATION_PHOTOS = ["images/shakai7-complete.jpg", "images/shakai10-complete.jpg"];
 const QUESTION_SECONDS = 7;
 const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
@@ -273,7 +274,8 @@ function renderCard() {
     clearTimeout(timer);
     categoryEl.textContent = "🎉 全問クリア";
     counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
-    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"images/shakai7-complete.jpg\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
     answerText.innerHTML = "🔄 おぼえた記録をリセットするとまた挑戦できます。";
