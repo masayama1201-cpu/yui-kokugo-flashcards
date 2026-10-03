@@ -149,7 +149,7 @@
   <div class="card">
     <div class="qlabel">Q</div>
     <div class="question" id="question">読み込み中…</div>
-    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
   </div>
 
   <div class="bottombar">
@@ -246,6 +246,7 @@ let finished = false;
 const questionEl = document.getElementById("question");
 const answerBox = document.getElementById("answerBox");
 const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
 const categoryEl = document.getElementById("category");
 const counterEl = document.getElementById("counter");
 const masteredCounterEl = document.getElementById("masteredCounter");
@@ -277,10 +278,12 @@ function renderCard() {
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
     answerText.innerHTML = "";
+    arrowLabel.style.display = "none";
     resetProgressBar();
     return;
   }
   finished = false;
+  arrowLabel.style.display = "";
   const item = deck[idx];
   categoryEl.textContent = item.cat;
   counterEl.textContent = (idx + 1) + " / " + deck.length;
