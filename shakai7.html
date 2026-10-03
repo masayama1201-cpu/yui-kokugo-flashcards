@@ -273,7 +273,7 @@ function renderCard() {
     clearTimeout(timer);
     categoryEl.textContent = "🎉 全問クリア";
     counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
-    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！";
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"images/shakai7-complete.jpg\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
     answerText.innerHTML = "🔄 おぼえた記録をリセットするとまた挑戦できます。";
