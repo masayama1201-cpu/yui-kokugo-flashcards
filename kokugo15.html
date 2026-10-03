@@ -173,7 +173,7 @@
   <div class="card">
     <div class="qlabel" id="qlabel">Q</div>
     <div class="question" id="question">読み込み中…</div>
-    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
     <div class="choice-wrap" id="choiceWrap">
       <div class="choice-box" id="choiceBoxA"></div>
       <div class="choice-box" id="choiceBoxB"></div>
@@ -250,6 +250,7 @@ function shuffle(arr) {
   return a;
 }
 
+const CELEBRATION_PHOTOS = ["images/shakai7-complete.jpg", "images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration6.jpg"];
 const QUESTION_SECONDS = 7;
 const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
@@ -287,6 +288,7 @@ const questionEl = document.getElementById("question");
 const qlabelEl = document.getElementById("qlabel");
 const answerBox = document.getElementById("answerBox");
 const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
 const choiceWrap = document.getElementById("choiceWrap");
 const choiceBoxA = document.getElementById("choiceBoxA");
 const choiceBoxB = document.getElementById("choiceBoxB");
@@ -313,14 +315,17 @@ function renderCard() {
     answerBox.style.display = "";
     categoryEl.textContent = "🎉 全問クリア";
     counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
-    questionEl.textContent = "🎉 全問「おぼえた」にしました！";
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
-    answerText.textContent = "🔄 リセットするとまた挑戦できます。";
+    answerText.textContent = "";
+    arrowLabel.style.display = "none";
     resetProgressBar();
     return;
   }
   finished = false;
+  arrowLabel.style.display = "";
   const item = deck[idx];
   categoryEl.textContent = item.cat;
   counterEl.textContent = (idx + 1) + " / " + deck.length;
