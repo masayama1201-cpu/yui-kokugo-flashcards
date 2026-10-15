@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第6回：武士の世の中と人々のくらし／＋α補足）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+  ruby { ruby-position: over; }
+  rt {
+    font-size: 0.42em;
+    font-weight: 600;
+    color: var(--sub);
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・第6回・③補足＋α</span>
+    <span id="counter">1 / 10</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="restartOrder">📖 テキスト順に最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"歴史散歩道", q:"平氏の拠点があったことから、平氏の政権は何政権と呼ばれることがある？", a:"<ruby>六波羅政権<rt>ろくはらせいけん</rt></ruby>"},
+  {cat:"歴史散歩道", q:"平清盛は六波羅に拠点を置いたことから何と呼ばれたことがある？", a:"<ruby>六波羅殿<rt>ろくはらどの</rt></ruby>"},
+  {cat:"社会探検（その後の奥州藤原氏）", q:"奥州藤原氏が平泉で目指していたものは何の実現だった？", a:"仏教の理想世界（戦乱で亡くなった敵味方すべての人の魂をなぐさめる、戦いも苦しみもない国）"},
+  {cat:"社会探検（その後の奥州藤原氏）", q:"極楽浄土の世界を庭園で表現した、平泉にある寺は？", a:"<ruby>毛越寺<rt>もうつうじ</rt></ruby>"},
+  {cat:"社会探検（その後の奥州藤原氏）", q:"平泉に残る奥州藤原氏の理想郷は、現在何に登録されている？", a:"世界文化遺産"},
+  {cat:"探求（鎌倉の地形）", q:"鎌倉が政治の拠点に選ばれた理由の一つ、源氏の氏神がまつられる神社は？", a:"<ruby>鶴岡八幡宮<rt>つるがおかはちまんぐう</rt></ruby>"},
+  {cat:"探求（鎌倉の地形）", q:"鎌倉はどのような地形に囲まれ、守りに適していた？", a:"山と海に囲まれ、切通しを通らないと入れない地形"},
+  {cat:"シナジー（幕府の意味）", q:"「幕府」という言葉のもともとの意味は？", a:"将軍が政治をおこなうところ"},
+  {cat:"シナジー（幕府の意味）", q:"「鎌倉幕府」という建物が実際に存在していたわけではなく、幕府の始まりの年には何がある？", a:"いくつかの説（1192年・1185年など、後の時代の人が決めたこと）"},
+  {cat:"武士たちのくらし", q:"笠懸・犬追物・流鏑馬の3つの騎射の鍛錬をまとめて何という？", a:"<ruby>騎射三物<rt>きしゃみつもの</rt></ruby>"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  return orderMode === "sequential" ? DATA.slice() : shuffle(DATA);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.innerHTML = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.innerHTML = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
