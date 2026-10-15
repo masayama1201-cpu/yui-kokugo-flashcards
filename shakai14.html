@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第6回：武士の世の中と人々のくらし／① 栄冠ベース・入門編）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 2.5vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+    text-align: center;
+    line-height: 1.4;
+  }
+  ruby { ruby-position: over; }
+  rt {
+    font-size: 0.42em;
+    font-weight: 600;
+    color: var(--sub);
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・第6回・入門（栄冠）</span>
+    <span id="counter">1 / 44</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 44</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"年表", q:"11世紀、<ruby>源頼義<rt>みなもとのよりよし</rt></ruby>・<ruby>義家<rt>よしいえ</rt></ruby>が平定した、東北地方の戦いは？", a:"<ruby>前九年合戦<rt>ぜんくねんかっせん</rt></ruby>（前九年の役）"},
+  {cat:"年表", q:"その後、東北で清原氏一族の内紛に<ruby>源義家<rt>みなもとのよしいえ</rt></ruby>が介入した戦いは？", a:"<ruby>後三年合戦<rt>ごさんねんかっせん</rt></ruby>（後三年の役）"},
+  {cat:"年表", q:"上皇が天皇の父として実権をにぎる政治を何という？", a:"<ruby>院政<rt>いんせい</rt></ruby>"},
+  {cat:"年表", q:"1156年、天皇家・藤原氏・源平の対立がからんで起きた戦いは？", a:"<ruby>保元の乱<rt>ほうげんのらん</rt></ruby>"},
+  {cat:"年表", q:"1159年、院の近臣どうしの対立から起きた戦いは？", a:"<ruby>平治の乱<rt>へいじのらん</rt></ruby>"},
+  {cat:"年表", q:"<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が1167年に就いた、武士として初めての役職は？", a:"<ruby>太政大臣<rt>だいじょうだいじん</rt></ruby>"},
+  {cat:"年表", q:"1185年、平氏が滅亡した戦いは？", a:"<ruby>壇ノ浦<rt>だんのうら</rt></ruby>の戦い"},
+  {cat:"年表", q:"1192年、<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>が任命された役職は？", a:"<ruby>征夷大将軍<rt>せいいたいしょうぐん</rt></ruby>"},
+  {cat:"武士の反乱", q:"935年、朝廷に対して反乱を起こした人物は？", a:"<ruby>平将門<rt>たいらのまさかど</rt></ruby>"},
+  {cat:"武士の反乱", q:"<ruby>平将門<rt>たいらのまさかど</rt></ruby>が関東で名乗った称号は？", a:"<ruby>新皇<rt>しんのう</rt></ruby>"},
+  {cat:"武士の反乱", q:"同じころ、瀬戸内海で反乱を起こした人物は？", a:"<ruby>藤原純友<rt>ふじわらのすみとも</rt></ruby>"},
+  {cat:"武士の反乱", q:"<ruby>後三年合戦<rt>ごさんねんかっせん</rt></ruby>のあと、朝廷から褒美を得られず自分の財産を家来に分け与えたのはだれ？", a:"<ruby>源義家<rt>みなもとのよしいえ</rt></ruby>"},
+  {cat:"保元の乱と平治の乱", q:"<ruby>保元の乱<rt>ほうげんのらん</rt></ruby>で、天皇側として勝利した天皇は？", a:"<ruby>後白河天皇<rt>ごしらかわてんのう</rt></ruby>"},
+  {cat:"保元の乱と平治の乱", q:"<ruby>保元の乱<rt>ほうげんのらん</rt></ruby>の結果、敗れた<ruby>崇徳上皇<rt>すとくじょうこう</rt></ruby>はどこに流された？", a:"<ruby>讃岐<rt>さぬき</rt></ruby>"},
+  {cat:"保元の乱と平治の乱", q:"<ruby>平治の乱<rt>へいじのらん</rt></ruby>で<ruby>平清盛<rt>たいらのきよもり</rt></ruby>に敗れたのはだれ？", a:"<ruby>源義朝<rt>みなもとのよしとも</rt></ruby>（と<ruby>藤原信頼<rt>ふじわらののぶより</rt></ruby>）"},
+  {cat:"勢いを増す平氏", q:"<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が日宋貿易のために修築した、現在の神戸港にあたる港は？", a:"<ruby>大輪田泊<rt>おおわだのとまり</rt></ruby>"},
+  {cat:"勢いを増す平氏", q:"<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が改修に力を入れた、広島にある神社は？", a:"<ruby>厳島神社<rt>いつくしまじんじゃ</rt></ruby>"},
+  {cat:"源平の争乱", q:"伊豆で挙兵した<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>が平氏を追いつめるために遣わした弟は？", a:"<ruby>源義経<rt>みなもとのよしつね</rt></ruby>"},
+  {cat:"源平の争乱", q:"いとことして木曽で挙兵し、都へ攻め入って平氏を追い出した人物は？", a:"<ruby>源義仲<rt>みなもとのよしなか</rt></ruby>（木曽義仲）"},
+  {cat:"鎌倉幕府の成立", q:"<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>が御家人をまとめるために鎌倉に置いた役所は？", a:"<ruby>侍所<rt>さむらいどころ</rt></ruby>"},
+  {cat:"鎌倉幕府の成立", q:"頼朝が国ごとに置いた、軍事・警察を担当する役職は？", a:"<ruby>守護<rt>しゅご</rt></ruby>"},
+  {cat:"鎌倉幕府の成立", q:"頼朝が荘園ごとに置いた、土地の管理や年貢の取り立てを行う役職は？", a:"<ruby>地頭<rt>じとう</rt></ruby>"},
+  {cat:"鎌倉幕府の成立", q:"御家人が将軍のために命を懸けて戦うことを何という？", a:"<ruby>奉公<rt>ほうこう</rt></ruby>"},
+  {cat:"鎌倉幕府の成立", q:"将軍が御家人の土地を保証したり、新しい土地を与えることを何という？", a:"<ruby>御恩<rt>ごおん</rt></ruby>"},
+  {cat:"奥州藤原氏", q:"奥州藤原氏の本拠地は？", a:"<ruby>平泉<rt>ひらいずみ</rt></ruby>"},
+  {cat:"奥州藤原氏", q:"頼朝が義経をかくまったことを理由に滅ぼした、東北の勢力は？", a:"<ruby>奥州藤原氏<rt>おうしゅうふじわらし</rt></ruby>"},
+  {cat:"奥州藤原氏", q:"奥州藤原氏が平泉に建てた、金色のお堂は？", a:"<ruby>中尊寺金色堂<rt>ちゅうそんじこんじきどう</rt></ruby>"},
+  {cat:"学び直し②", q:"ウ桓武天皇の平安京遷都、イ藤原氏の摂関政治、ア院政、エ平清盛の太政大臣就任を、年代の古い順に並べると？", a:"ウ→イ→ア→エ"},
+  {cat:"演習①", q:"1185年3月24日、源平最後の合戦がおこなわれた場所は？", a:"<ruby>壇ノ浦<rt>だんのうら</rt></ruby>"},
+  {cat:"演習①", q:"源氏や平氏は、都での出世が望めなかったため、何になって地方に赴き、住みついて豪族となった？", a:"<ruby>国司<rt>こくし</rt></ruby>"},
+  {cat:"演習①", q:"1156年に起きた、天皇と上皇・藤原氏内部の対立が結びついた戦いは？", a:"<ruby>保元の乱<rt>ほうげんのらん</rt></ruby>"},
+  {cat:"演習①", q:"<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が武士として初めて就いた、政治の最高職は？", a:"<ruby>太政大臣<rt>だいじょうだいじん</rt></ruby>"},
+  {cat:"演習①", q:"平氏の権勢の大きさを表す「この一族でない人はみな今を時めく人でない」という言葉。これと同じ意味を持つ、平氏の権勢を表す歌はどれ？「ア 天の原…」「イ この一族でない人は…」「ウ この世をば…」", a:"ウ（<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>の「この世をば わが世とぞ思う 望月の…」）"},
+  {cat:"演習①", q:"伊豆に流されていた頼朝が平氏打倒の兵をあげ、鎌倉を根拠地に東国武士を味方につけたあと、平氏を追いつめるために遣わした弟はだれ？", a:"<ruby>源義経<rt>みなもとのよしつね</rt></ruby>"},
+  {cat:"演習①", q:"935年から関東の役所を次々と攻め落とし、「新皇」を名乗ったのはだれ？", a:"<ruby>平将門<rt>たいらのまさかど</rt></ruby>"},
+  {cat:"演習①", q:"1083年、東北地方の乱をしずめたが朝廷から褒美を得られず、自分の財産を家来の武士に分けあたえたのはだれ？", a:"<ruby>源義家<rt>みなもとのよしいえ</rt></ruby>"},
+  {cat:"演習②", q:"将軍と主従関係を結び、将軍に仕えるようになった武士を何という？", a:"<ruby>御家人<rt>ごけにん</rt></ruby>"},
+  {cat:"演習②", q:"将軍と御家人を仲立ちとして強く結びつけていたものは何？", a:"土地"},
+  {cat:"演習②", q:"御恩とはどのようなこと？", a:"御家人の持つ先祖伝来の土地を保証したり、新しい役職に任命したり、新しい土地をあたえたりすること"},
+  {cat:"演習②", q:"奉公とはどのようなこと？", a:"命を懸けて将軍のために戦うこと"},
+  {cat:"演習②", q:"国ごとに置かれ、軍事や警察の仕事をおこなった役職は？", a:"<ruby>守護<rt>しゅご</rt></ruby>"},
+  {cat:"演習②", q:"荘園ごとに置かれ、土地の管理や年貢の取り立てなどをおこなった役職は？", a:"<ruby>地頭<rt>じとう</rt></ruby>"},
+  {cat:"演習②", q:"<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>が征夷大将軍に任命された年は？", a:"1192年"},
+  {cat:"演習②", q:"将軍に仕える武士のふだんの生活について、正しいのはどれ？「自分の領地の屋敷に住み、農民に指図して農業をおこなわせていた」で合っている？", a:"正しい（自分の領地にある屋敷に住んでいた）"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const CELEBRATION_PHOTOS = ["images/shakai7-complete.jpg", "images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration6.jpg"];
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("shakai14_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("shakai14_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
+let idx = 0;
+let finished = false;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
+function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.innerHTML = "";
+    arrowLabel.style.display = "none";
+    resetProgressBar();
+    return;
+  }
+  finished = false;
+  arrowLabel.style.display = "";
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.innerHTML = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.innerHTML = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (finished) return;
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  resetProgressBar();
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+updateMasteredCounter();
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
