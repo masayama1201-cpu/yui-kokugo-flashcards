@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第5回：天皇・貴族の政治と人々のくらし／本科+栄冠 重要事項）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4.4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 1vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+  ruby { ruby-position: over; }
+  rt {
+    font-size: 0.42em;
+    font-weight: 600;
+    color: var(--sub);
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">社会・第5回・②完成編</span>
+    <span id="counter">1 / 71</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 一時停止</button>
+    <button id="restart">🔀 シャッフルして最初から</button>
+    <button id="restartOrder">📖 テキスト順に最初から</button>
+    <button id="fullscreenBtn">⛶ 全画面</button>
+    <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"年表", q:"794年、<ruby>桓武天皇<rt>かんむてんのう</rt></ruby>が都を移した場所は？", a:"<ruby>平安京<rt>へいあんきょう</rt></ruby>"},
+  {cat:"年表", q:"<ruby>最澄<rt>さいちょう</rt></ruby>が広めた仏教の宗派は？", a:"<ruby>天台宗<rt>てんだいしゅう</rt></ruby>"},
+  {cat:"年表", q:"<ruby>空海<rt>くうかい</rt></ruby>が広めた仏教の宗派は？", a:"<ruby>真言宗<rt>しんごんしゅう</rt></ruby>"},
+  {cat:"年表", q:"9世紀半ば、藤原氏で初めて<ruby>摂政<rt>せっしょう</rt></ruby>となった人物は？", a:"<ruby>藤原良房<rt>ふじわらのよしふさ</rt></ruby>"},
+  {cat:"年表", q:"<ruby>藤原良房<rt>ふじわらのよしふさ</rt></ruby>の養子で、最初に<ruby>関白<rt>かんぱく</rt></ruby>となった人物は？", a:"<ruby>藤原基経<rt>ふじわらのもとつね</rt></ruby>"},
+  {cat:"年表", q:"894年、<ruby>菅原道真<rt>すがわらのみちざね</rt></ruby>の提案で停止されたのは？", a:"<ruby>遣唐使<rt>けんとうし</rt></ruby>"},
+  {cat:"年表", q:"901年、<ruby>菅原道真<rt>すがわらのみちざね</rt></ruby>が左遷された場所は？", a:"<ruby>大宰府<rt>だざいふ</rt></ruby>"},
+  {cat:"年表", q:"10世紀末、尾張国で暴政を訴えられた国司は？", a:"<ruby>藤原元命<rt>ふじわらのもとなが</rt></ruby>"},
+  {cat:"年表", q:"1016年、<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>が就いた役職は？", a:"<ruby>摂政<rt>せっしょう</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"平安京の西側を流れ、大阪湾とつながる川は？", a:"<ruby>淀川<rt>よどがわ</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"794年に都が京都へ移る前、784年に桓武天皇がまず都を移した場所は？", a:"<ruby>長岡京<rt>ながおかきょう</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"長岡京の建設が思うように進まなかった理由は？", a:"建設責任者の暗殺事件が起こったことや、淀川支流の合流点でたびたび洪水が起こったこと"},
+  {cat:"桓武天皇の改革", q:"長岡京の建設責任者暗殺事件への関与を疑われ、自ら食を断って亡くなった桓武天皇の弟は？", a:"<ruby>早良親王<rt>さわらしんのう</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"<ruby>早良親王<rt>さわらしんのう</rt></ruby>の死後、桓武天皇の家族に不幸が続いたことは何のたたりと恐れられた？", a:"<ruby>早良親王<rt>さわらしんのう</rt></ruby>の<ruby>怨霊<rt>おんりょう</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"桓武天皇は地方の軍事力を強化するため、何の子弟から兵をつのるようにした？", a:"<ruby>郡司<rt>ぐんじ</rt></ruby>（の子弟）"},
+  {cat:"桓武天皇の改革", q:"桓武天皇が3度にわたり征服をめざした、東北地方の朝廷にしたがわない人々は？", a:"<ruby>蝦夷<rt>えみし</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"蝦夷を服従させるため、第3回の遠征で活躍し<ruby>征夷大将軍<rt>せいいたいしょうぐん</rt></ruby>となった人物は？", a:"<ruby>坂上田村麻呂<rt>さかのうえのたむらまろ</rt></ruby>"},
+  {cat:"桓武天皇の改革", q:"<ruby>坂上田村麻呂<rt>さかのうえのたむらまろ</rt></ruby>に降伏した、蝦夷の首長は？", a:"<ruby>阿弖流為<rt>あてるい</rt></ruby>"},
+  {cat:"新しい仏教", q:"近江に生まれ、遣唐使として唐へわたり天台宗を学んだ僧は？", a:"<ruby>最澄<rt>さいちょう</rt></ruby>"},
+  {cat:"新しい仏教", q:"讃岐に生まれ、遣唐使として唐へわたり真言宗を学んだ僧は？", a:"<ruby>空海<rt>くうかい</rt></ruby>"},
+  {cat:"新しい仏教", q:"最澄・空海が学んできた、奥深い山中できびしい修行をおこなう仏教の教えを何という？", a:"<ruby>密教<rt>みっきょう</rt></ruby>"},
+  {cat:"摂関政治", q:"藤原氏が天皇の母方の祖父になることを何という？", a:"<ruby>外祖父<rt>がいそふ</rt></ruby>"},
+  {cat:"摂関政治", q:"天皇が幼い間、代わって政治をおこなう役職は？", a:"<ruby>摂政<rt>せっしょう</rt></ruby>"},
+  {cat:"摂関政治", q:"天皇が成人したあと、政治を補佐する役職は？", a:"<ruby>関白<rt>かんぱく</rt></ruby>"},
+  {cat:"摂関政治", q:"<ruby>摂政<rt>せっしょう</rt></ruby>や<ruby>関白<rt>かんぱく</rt></ruby>によっておこなわれる政治を何という？", a:"<ruby>摂関政治<rt>せっかんせいじ</rt></ruby>"},
+  {cat:"摂関政治", q:"菅原道真を陥れ、大宰府へ左遷させた、同じく朝廷の高官だった人物は？", a:"<ruby>藤原時平<rt>ふじわらのときひら</rt></ruby>"},
+  {cat:"摂関政治", q:"菅原道真の死後、たたりを恐れて道真を神としてまつった京都の神社は？", a:"<ruby>北野天満宮<rt>きたのてんまんぐう</rt></ruby>"},
+  {cat:"摂関政治", q:"菅原道真は現在、何の神様として全国の天満宮にまつられている？", a:"学問の神様"},
+  {cat:"摂関政治", q:"11世紀、藤原氏の全盛期を築いた人物は？", a:"<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>"},
+  {cat:"摂関政治", q:"<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>は996年に何という役職に就いた？", a:"<ruby>右大臣<rt>うだいじん</rt></ruby>（翌年に左大臣）"},
+  {cat:"摂関政治", q:"<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>が「この世をば わが世とぞ思う 望月の…」とよんだのは、何番目の娘が天皇の后となったときか？", a:"三女（<ruby>威子<rt>いし</rt></ruby>）"},
+  {cat:"摂関政治", q:"<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>は摂政にはなったが、ある役職にはなっていない。それは何？", a:"<ruby>関白<rt>かんぱく</rt></ruby>"},
+  {cat:"摂関政治", q:"藤原氏の娘と天皇の間に生まれた子は、だれのもとで育てられるのがふつうだった？", a:"母方（藤原氏）の家庭"},
+  {cat:"摂関政治", q:"<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>の子で、藤原氏の全盛期を引き継いだ人物は？", a:"<ruby>藤原頼通<rt>ふじわらのよりみち</rt></ruby>"},
+  {cat:"摂関政治", q:"<ruby>藤原頼通<rt>ふじわらのよりみち</rt></ruby>が京都の宇治に建てた、極楽浄土をこの世に表そうとした建物は？", a:"<ruby>平等院鳳凰堂<rt>びょうどういんほうおうどう</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"このころ貴族によって生み出された、日本独自の文化を何という？", a:"<ruby>国風文化<rt>こくふうぶんか</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"国風文化を代表する、漢字をくずして作られた文字は？", a:"かな文字"},
+  {cat:"貴族の生活と文化", q:"「源氏物語」の作者は？", a:"<ruby>紫式部<rt>むらさきしきぶ</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"「枕草子」の作者は？", a:"<ruby>清少納言<rt>せいしょうなごん</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"<ruby>紫式部<rt>むらさきしきぶ</rt></ruby>は<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>のどの娘に仕えた？", a:"<ruby>彰子<rt>しょうし</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"<ruby>清少納言<rt>せいしょうなごん</rt></ruby>は藤原道隆の娘のだれに仕えた？", a:"<ruby>定子<rt>ていし</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"<ruby>紀貫之<rt>きのつらゆき</rt></ruby>が書いた、日記風の紀行文は？", a:"<ruby>土佐日記<rt>とさにっき</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"<ruby>紀貫之<rt>きのつらゆき</rt></ruby>はなぜ「土佐日記」の中で自分を女性としたと考えられている？", a:"当時、男性は体面上かな文字をあまり使わなかったから"},
+  {cat:"貴族の生活と文化", q:"貴族の住居に見られる、日本風の建築様式は？", a:"<ruby>寝殿造<rt>しんでんづくり</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"寝殿の前庭で貴族が蹴って遊んだ球技は？", a:"<ruby>蹴鞠<rt>けまり</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"貴族男性の正装は？", a:"<ruby>束帯<rt>そくたい</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"貴族女性が色のちがう衣服を十数枚重ね着した正装は？", a:"<ruby>十二単<rt>じゅうにひとえ</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"平安時代の貴族の食事は、1日何回が基本だった？", a:"2回"},
+  {cat:"貴族の生活と文化", q:"仏教の影響で、貴族がほとんど食べなかったものは？", a:"獣の肉"},
+  {cat:"貴族の生活と文化", q:"死後に極楽浄土へ行けると説いた、このころ広まった教えは？", a:"<ruby>浄土教<rt>じょうどきょう</rt></ruby>"},
+  {cat:"貴族の生活と文化", q:"浄土教で唱えられた「南無阿弥陀仏」とはどういう意味？", a:"阿弥陀仏様お頼みします、という意味"},
+  {cat:"地方政治と荘園", q:"都の貴族の仕事は、儀式や行事をどのようにおこなうことが中心だった？", a:"しきたり通りにおこなうこと"},
+  {cat:"地方政治と荘園", q:"地方政治のほとんどを任されていた、都から派遣される役人は？", a:"<ruby>国司<rt>こくし</rt></ruby>"},
+  {cat:"地方政治と荘園", q:"<ruby>藤原元命<rt>ふじわらのもとなが</rt></ruby>が暴政を訴えられた国は？", a:"<ruby>尾張<rt>おわり</rt></ruby>（国）"},
+  {cat:"地方政治と荘園", q:"<ruby>藤原元命<rt>ふじわらのもとなが</rt></ruby>への訴えは、何か条にわたっていた？", a:"31か条"},
+  {cat:"地方政治と荘園", q:"<ruby>藤原元命<rt>ふじわらのもとなが</rt></ruby>はその後どうなった？", a:"国司はやめさせられたが、その後も朝廷の役人を続けた"},
+  {cat:"地方政治と荘園", q:"地方の有力な農民が開墾などで広げた私有地を何という？", a:"<ruby>荘園<rt>しょうえん</rt></ruby>"},
+  {cat:"地方政治と荘園", q:"地方の有力な農民が税をのがれるため、荘園を中央の貴族や寺社に差し出すことを何という？", a:"<ruby>寄付<rt>きふ</rt></ruby>（寄進）"},
+  {cat:"地方政治と荘園", q:"荘園領主が税を納めなくてよい権利を何という？", a:"<ruby>不輸の権<rt>ふゆのけん</rt></ruby>"},
+  {cat:"地方政治と荘園", q:"荘園領主が国司の立ち入りを拒める権利を何という？", a:"<ruby>不入の権<rt>ふにゅうのけん</rt></ruby>"},
+  {cat:"演習①", q:"743年、聖武天皇が出した、開墾した土地の永久私有を認める法律は？", a:"<ruby>墾田永年私財法<rt>こんでんえいねんしざいほう</rt></ruby>"},
+  {cat:"演習①", q:"<ruby>最澄<rt>さいちょう</rt></ruby>が天台宗を広めるために中心とした、比叡山にある寺は？", a:"<ruby>延暦寺<rt>えんりゃくじ</rt></ruby>"},
+  {cat:"演習①", q:"<ruby>空海<rt>くうかい</rt></ruby>が真言宗を広めるために中心とした、高野山にある寺は？", a:"<ruby>金剛峯寺<rt>こんごうぶじ</rt></ruby>"},
+  {cat:"演習①", q:"平安京のお手本となった、唐の都の名は？", a:"<ruby>長安<rt>ちょうあん</rt></ruby>"},
+  {cat:"演習②", q:"藤原氏の祖で、大化の改新で活躍した人物は？", a:"<ruby>藤原鎌足<rt>ふじわらのかまたり</rt></ruby>"},
+  {cat:"演習②", q:"大宝律令の制定に深く関わった、<ruby>藤原鎌足<rt>ふじわらのかまたり</rt></ruby>の子は？", a:"<ruby>藤原不比等<rt>ふじわらのふひと</rt></ruby>"},
+  {cat:"演習②", q:"聖武天皇の后となった藤原氏の人物は？", a:"<ruby>光明子<rt>こうみょうし</rt></ruby>"},
+  {cat:"演習③", q:"かな文字のもとになった、「あ」という読みを表す漢字は？", a:"安"},
+  {cat:"演習③", q:"かな文字のもとになった、「い」という読みを表す漢字は？", a:"以"},
+  {cat:"歴史さんぽ・探求", q:"農民に土地を貸して税を集める班田収授の法がうまくいかなくなった原因は？", a:"<ruby>荘園<rt>しょうえん</rt></ruby>が増えたこと"},
+  {cat:"歴史さんぽ・探求", q:"朝廷が国司の暴政をほとんど放置していたのはなぜ？", a:"国司に集めた税のうちから必要分を納めさせる代わりに、地方政治のほとんどを任せていたから"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  return orderMode === "sequential" ? DATA.slice() : shuffle(DATA);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+function renderCard() {
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.innerHTML = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.innerHTML = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  progressBar.style.width = "0%";
+  startProgress();
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 一時停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  progressBar.style.width = "0%";
+  if (!paused) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFullscreenBtn() {
+  fullscreenBtn.textContent = isFullscreen() ? "⛶ 全画面をやめる" : "⛶ 全画面";
+}
+fullscreenBtn.addEventListener("click", () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      req.call(el);
+    } else {
+      alert("この端末のSafariでは全画面ボタンに対応していないようです。\nホーム画面に追加したアイコンから開くと、アドレスバーなしで表示できます。");
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", updateFullscreenBtn);
+document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
