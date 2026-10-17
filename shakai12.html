@@ -156,11 +156,11 @@
   </div>
 
   <div class="bottombar">
-    <button id="playPause">⏸ 一時停止</button>
+    <button id="playPause">■</button>
     <button id="restart">🔀 シャッフルして最初から</button>
     <button id="restartOrder">📖 テキスト順に最初から</button>
     <button id="fullscreenBtn">⛶ 全画面</button>
-    <button onclick="window.open('shakai-review-5.html','_blank')">📊 整理</button>
+    <button onclick="window.open('shakai-review-5.html','_blank')">⭐</button>
     <span class="hint">問題7秒→答え5秒で自動的に切り替わります（タップでも操作できます）</span>
   </div>
 </div>
@@ -338,12 +338,12 @@ function pause() {
   const elapsed = Date.now() - tickStart;
   remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
   progressBar.style.transition = "none";
-  playPauseBtn.textContent = "▶ 再生";
+  playPauseBtn.textContent = "▶";
 }
 
 function resume() {
   paused = false;
-  playPauseBtn.textContent = "⏸ 一時停止";
+  playPauseBtn.textContent = "■";
   tickStart = Date.now();
   timer = setTimeout(() => {
     step();
