@@ -249,7 +249,7 @@ function saveKnown() {
 function activeData() {
   return DATA.filter(item => !known.has(item._id));
 }
-let orderMode = "shuffle"; // "shuffle" | "sequential"
+let orderMode = "sequential"; // "shuffle" | "sequential"
 function makeDeck() {
   const pool = activeData();
   return orderMode === "sequential" ? pool.slice() : shuffle(pool);
