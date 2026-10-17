@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語（5年後期 第5回：三字・四字熟語）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 4vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 90vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 2.5vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語・三字四字熟語編</span>
+    <span id="counter">1 / 58</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 58</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"三字熟語（打ち消し・本科）", q:"「責任」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"無責任"},
+  {cat:"三字熟語（打ち消し・本科）", q:"「公平」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"不公平"},
+  {cat:"三字熟語（打ち消し・本科）", q:"「発達」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"未発達"},
+
+  {cat:"四字熟語の完成（本科）", q:"自分でした報いを自分がうけることを表す四字熟語は？（□業□得）", a:"自業自得"},
+  {cat:"四字熟語の完成（本科）", q:"全員が同じことを言うことを表す四字熟語は？（異□同音）", a:"異口同音"},
+  {cat:"四字熟語の完成（本科）", q:"ほんの短い時間を表す四字熟語は？（□朝□夕）", a:"一朝一夕"},
+  {cat:"四字熟語の完成（本科）", q:"一つのことに心をうばわれている様子を表す四字熟語は？（□我□中）", a:"無我夢中"},
+
+  {cat:"四字熟語と意味（本科）", q:"「自分の作文を自分でほめたたえる」にあてはまる四字熟語は？", a:"自画自賛"},
+  {cat:"四字熟語と意味（本科）", q:"「先生の話をきっかけに心を入れかえる」にあてはまる四字熟語は？", a:"心機一転"},
+  {cat:"四字熟語と意味（本科）", q:"「父と母は心が通じあっている」にあてはまる四字熟語は？", a:"以心伝心"},
+  {cat:"四字熟語と意味（本科）", q:"「よいものだけを選び出すことが得意」にあてはまる四字熟語は？", a:"取捨選択"},
+  {cat:"四字熟語と意味（本科）", q:"「つまらないことをとてもおおげさに言う」にあてはまる四字熟語は？", a:"針小棒大"},
+
+  {cat:"共通の漢字（本科）", q:"「政治に□関心だ」「願いを□条件で受け入れた」共通してあてはまる漢字は？", a:"無（無関心・無条件）"},
+  {cat:"共通の漢字（本科）", q:"「将来□がある」「優勝する可能□は少ない」共通してあてはまる漢字は？", a:"性（将来性・可能性）"},
+  {cat:"共通の漢字（本科）", q:"「サービスは良心□だ」「絵はとても印象□だ」共通してあてはまる漢字は？", a:"的（良心的・印象的）"},
+
+  {cat:"四字熟語の意味（本科・発展）", q:"「右□左□」を完成させ、意味も答えると？", a:"右往左往（どうしていいかわからず、うろうろすること）"},
+  {cat:"四字熟語の意味（本科・発展）", q:"「□代未聞」を完成させ、意味も答えると？", a:"前代未聞（これまで聞いたことのないこと）"},
+  {cat:"四字熟語の意味（本科・発展）", q:"「□束□文」を完成させ、意味も答えると？", a:"二束三文（たいした価値がないこと）"},
+  {cat:"四字熟語の意味（本科・発展）", q:"「□寒□温」を完成させ、意味も答えると？", a:"三寒四温（寒い日と暖かい日が周期的に訪れる気候）"},
+  {cat:"四字熟語の意味（本科・発展）", q:"「□語道断」を完成させ、意味も答えると？", a:"言語道断（言葉にできないくらいひどい行い）"},
+  {cat:"四字熟語の意味（本科・発展）", q:"「□同□異」を完成させ、意味も答えると？", a:"大同小異（多少の違いはあってもほとんど同じ）"},
+
+  {cat:"同じ漢字が二度使われる四字熟語（本科）", q:"「四□八□」同じ漢字が二度使われる四字熟語は？", a:"四苦八苦"},
+  {cat:"同じ漢字が二度使われる四字熟語（本科）", q:"「□老□死」同じ漢字が二度使われる四字熟語は？", a:"不老不死"},
+  {cat:"同じ漢字が二度使われる四字熟語（本科）", q:"「以□伝□」同じ漢字が二度使われる四字熟語は？", a:"以心伝心"},
+  {cat:"同じ漢字が二度使われる四字熟語（本科）", q:"「□由□在」同じ漢字が二度使われる四字熟語は？", a:"自由自在"},
+
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「非常に苦しむこと」を表す四字熟語は？", a:"四苦八苦"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「よくなったり悪くなったりすること」を表す四字熟語は？", a:"一進一退"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「すべて命中すること」を表す四字熟語は？", a:"百発百中"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「一生にたった一度の出会い」を表す四字熟語は？", a:"一期一会"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「めまぐるしく変わること」を表す四字熟語は？", a:"千変万化"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「めったにない良い機会」を表す四字熟語は？", a:"千載一遇"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「一つ一つのふるまい」を表す四字熟語は？", a:"一挙一動"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「長所があれば短所もあること」を表す四字熟語は？", a:"一長一短"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「ころげまわって苦しみもだえること」を表す四字熟語は？", a:"七転八倒"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「わずかな時間にも大切な価値があること」を表す四字熟語は？", a:"一刻千金"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「人の好みや考えはそれぞれ違うこと」を表す四字熟語は？", a:"十人十色"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「それぞれに違ったり悪かったりしていること」を表す四字熟語は？", a:"千差万別"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「一つのことで同時に二つのことを得ること」を表す四字熟語は？", a:"一石二鳥"},
+  {cat:"四字熟語の意味当て（本科・発展）", q:"「わずかの日時」を表す四字熟語は？", a:"一朝一夕"},
+
+  {cat:"三字熟語（打ち消し・栄冠）", q:"「常識」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"非常識"},
+  {cat:"三字熟語（打ち消し・栄冠）", q:"「開発」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"未開発"},
+  {cat:"三字熟語（打ち消し・栄冠）", q:"「自然」に打ち消しの意味の漢字をつけて三字熟語にすると？", a:"不自然"},
+
+  {cat:"共通の漢字（栄冠）", q:"「□売品なので、お売りできません」「練習が□公開で行われた」共通してあてはまる漢字は？", a:"非（非売品・非公開）"},
+  {cat:"共通の漢字（栄冠）", q:"「世の中には□解決の問題がたくさんある」「曲が□完成のまま、音楽家は亡くなった」共通してあてはまる漢字は？", a:"未（未解決・未完成）"},
+  {cat:"共通の漢字（栄冠）", q:"「そんなことをしても□意味だ」「何もしないなんて□責任だ」共通してあてはまる漢字は？", a:"無（無意味・無責任）"},
+  {cat:"共通の漢字（栄冠）", q:"「親近□を味わった」「達成□を味わった」共通してあてはまる漢字は？", a:"感（親近感・達成感）"},
+  {cat:"共通の漢字（栄冠）", q:"「問題が表面□した」「マンガが今度映画□される」共通してあてはまる漢字は？", a:"化（表面化・映画化）"},
+
+  {cat:"四字熟語と意味（栄冠）", q:"「学級委員にふさわしい人がら」にあてはまる四字熟語は？", a:"適材適所"},
+  {cat:"四字熟語と意味（栄冠）", q:"「先生の言うことをいつも聞き流している」にあてはまる四字熟語は？", a:"馬耳東風"},
+  {cat:"四字熟語と意味（栄冠）", q:"「何も言わずやるべきことをきちんとやる」にあてはまる四字熟語は？", a:"不言実行"},
+  {cat:"四字熟語と意味（栄冠）", q:"「タロウのいうことはうそかほんとうかわからない」にあてはまる四字熟語は？", a:"半信半疑"},
+  {cat:"四字熟語と意味（栄冠）", q:"「クラスの生徒はみな様々な個性を持っている」にあてはまる四字熟語は？", a:"十人十色"},
+
+  {cat:"四字熟語の完成（栄冠）", q:"「□平無□」を完成させ、意味も答えると？", a:"公平無私（だれにでも平等に接すること）"},
+  {cat:"四字熟語の完成（栄冠）", q:"「□方美□」を完成させ、意味も答えると？", a:"八方美人（だれとでもあいそよくつきあう人）"},
+  {cat:"四字熟語の完成（栄冠）", q:"「□肉強□」を完成させ、意味も答えると？", a:"弱肉強食（生物界のきびしいおきて）"},
+  {cat:"四字熟語の完成（栄冠）", q:"「□石□鳥」を完成させ、意味も答えると？", a:"一石二鳥（一つのことで同時に二つのことを得ること）"},
+  {cat:"四字熟語の完成（栄冠）", q:"「本末□□」を完成させ、意味も答えると？", a:"本末転倒（大切なこととつまらないことが反対になること）"},
+  {cat:"四字熟語の完成（栄冠）", q:"「□□方正」を完成させ、意味も答えると？", a:"品行方正（おこないが正しく、ぎょうぎよいこと）"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const CELEBRATION_PHOTOS = ["images/shakai7-complete.jpg", "images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration6.jpg"];
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("kokugo18_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("kokugo18_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+let finished = false;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
+function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.textContent = "";
+    arrowLabel.style.display = "none";
+    resetProgressBar();
+    return;
+  }
+  finished = false;
+  arrowLabel.style.display = "";
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (finished) return;
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  resetProgressBar();
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+updateMasteredCounter();
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
