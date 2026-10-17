@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語（5年後期 第6回：同音異義語・同訓異字）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 3.6vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 92vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 2.5vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語・同音異義語同訓異字編</span>
+    <span id="counter">1 / 71</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 71</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"同音異義語（コウカ・本科）", q:"「学校のコウカを歌う」の正しい漢字は？", a:"校歌"},
+  {cat:"同音異義語（コウカ・本科）", q:"「父がコウカなプレゼントをくれた」の正しい漢字は？", a:"高価"},
+  {cat:"同音異義語（コウカ・本科）", q:"「この薬のコウカには疑問がある」の正しい漢字は？", a:"効果"},
+  {cat:"同音異義語（キゲン・本科）", q:"「□前の人間の生活について調べる」の正しい漢字は？", a:"紀元"},
+  {cat:"同音異義語（キゲン・本科）", q:"「しめ切りのキゲンが近づき落ちつかない」の正しい漢字は？", a:"期限"},
+  {cat:"同音異義語（キゲン・本科）", q:"「宇宙にまたたく星々のキゲンに興味がある」の正しい漢字は？", a:"起源"},
+  {cat:"同音異義語（カンシン・本科）", q:"「自動車にカンシンをもつ」の正しい漢字は？", a:"関心"},
+  {cat:"同音異義語（カンシン・本科）", q:"「わたしは兄の話にカンシンした」の正しい漢字は？", a:"感心"},
+  {cat:"同音異義語（カンシン・本科）", q:"「人のカンシンを買う」の正しい漢字は？", a:"歓心"},
+  {cat:"同音異義語（シュウカン・本科）", q:"「交通安全シュウカンが始まる」の正しい漢字は？", a:"週間"},
+  {cat:"同音異義語（シュウカン・本科）", q:"「駅の売店でシュウカン誌を買う」の正しい漢字は？", a:"週刊"},
+  {cat:"同音異義語（シュウカン・本科）", q:"「規則正しい生活をシュウカンづける」の正しい漢字は？", a:"習慣"},
+  {cat:"同音異義語（キカイ・本科）", q:"「絶好のキカイをのがしてしまった」の正しい漢字は？", a:"機会"},
+  {cat:"同音異義語（キカイ・本科）", q:"「妹はキカイ体操がとても得意だ」の正しい漢字は？", a:"器械"},
+  {cat:"同音異義語（キカイ・本科）", q:"「父は精密キカイを作る工場で働いている」の正しい漢字は？", a:"機械"},
+  {cat:"同訓異字（アラワす・本科）", q:"「ぼくは感情をすぐにアラワしてしまう」の正しい漢字は？", a:"表す"},
+  {cat:"同訓異字（アラワす・本科）", q:"「A君がとつぜんアラワした」の正しい漢字は？", a:"現す"},
+  {cat:"同訓異字（アラワす・本科）", q:"「夏目漱石はたくさんの書物をアラワした」の正しい漢字は？", a:"著す"},
+  {cat:"同訓異字（ツトめる・本科）", q:"「わたしは学級委員をツトめている」の正しい漢字は？", a:"務める"},
+  {cat:"同訓異字（ツトめる・本科）", q:"「わたしは毎日学習するようにツトめている」の正しい漢字は？", a:"努める"},
+  {cat:"同訓異字（ツトめる・本科）", q:"「わたしの父は薬品会社にツトめている」の正しい漢字は？", a:"勤める"},
+  {cat:"同訓異字（キク・本科）", q:"「先生の話はよくキクように心がけよう」の正しい漢字は？", a:"聞く"},
+  {cat:"同訓異字（キク・本科）", q:"「この薬は頭痛にとてもキク」の正しい漢字は？", a:"効く"},
+  {cat:"同訓異字（キク・本科）", q:"「かれはとても機転がキク人だ」の正しい漢字は？", a:"利く"},
+  {cat:"同訓異字（アツい・本科）", q:"「今年の夏はとてもアツかった」の正しい漢字は？", a:"暑い"},
+  {cat:"同訓異字（アツい・本科）", q:"「本だなにアツい本がたくさんならんでいる」の正しい漢字は？", a:"厚い"},
+  {cat:"同訓異字（アツい・本科）", q:"「わたしの兄がアツい紅茶を飲んでいる」の正しい漢字は？", a:"熱い"},
+  {cat:"同訓異字（ウツす・本科）", q:"「旅行で寺社の写真をウツしてきた」の正しい漢字は？", a:"写す"},
+  {cat:"同訓異字（ウツす・本科）", q:"「母が鏡に自分のすがたをウツしている」の正しい漢字は？", a:"映す"},
+  {cat:"同訓異字（ウツす・本科）", q:"「父の転勤にともない住まいをウツすことになった」の正しい漢字は？", a:"移す"},
+
+  {cat:"同音異義語（サイゴ・本科）", q:"「列のサイゴにならぶ」の正しい漢字は？", a:"最後"},
+  {cat:"同音異義語（サイゴ・本科）", q:"「戦争で悲惨なサイゴをとげる」の正しい漢字は？", a:"最期"},
+  {cat:"同音異義語（カイホウ・本科）", q:"「リンカーンは奴隷をカイホウした」の正しい漢字は？", a:"解放"},
+  {cat:"同音異義語（カイホウ・本科）", q:"「月曜日は校庭をカイホウに向かった」の正しい漢字は？", a:"開放"},
+  {cat:"同音異義語（カイホウ・本科）", q:"「母の病気がやっとカイホウに向かった」の正しい漢字は？", a:"快方"},
+  {cat:"同音異義語（キュウヨウ・本科）", q:"「先生はキュウヨウができたのでお帰りになった」の正しい漢字は？", a:"急用"},
+  {cat:"同音異義語（キュウヨウ・本科）", q:"「父は自宅でキュウヨウをとっている」の正しい漢字は？", a:"休養"},
+  {cat:"同訓異字（ハカる・本科）", q:"「台風で増水した多摩川の水位をハカる」の正しい漢字は？", a:"測る"},
+  {cat:"同訓異字（ハカる・本科）", q:"「日々の暮らしの中で環境の改善をハカる」の正しい漢字は？", a:"図る"},
+  {cat:"同訓異字（ハカる・本科）", q:"「毎月の健康診断で体重をハカる」の正しい漢字は？", a:"量る"},
+  {cat:"同訓異字（ハカる・本科）", q:"「運動会に備え、百メートルのタイムをハカる」の正しい漢字は？", a:"計る"},
+
+  {cat:"漢字の読み取り（本科・記号選択）", q:"「利益を追キュウする」の「求」と同じ漢字を使うのは？　ア海のカン潮／イ地キュウの歴史／ウ研キュウ発表／エ増員を要キュウする", a:"エ（要求）"},
+  {cat:"漢字の読み取り（本科・記号選択）", q:"「病人のカン護をする」の「看」と同じ漢字を使うのは？　ア研キュウ発表／イ店のカン板／ウカン潔にまとめる／エ映画のカン客", a:"イ（看板）"},
+
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「出発のヨウイがやっととのった」の正しい漢字は？", a:"用意"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「今日の問題はみなヨウイに解くことができた」の正しい漢字は？", a:"容易"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「クラスの代表にシメイされた」の正しい漢字は？", a:"指名"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「重大なシメイを果たした」の正しい漢字は？", a:"使命"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「わたしのシメイは日能研太郎です」の正しい漢字は？", a:"氏名"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「税金をオサめることは国民の義務である」の正しい漢字は？", a:"納める"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「みなさんの仕事は学問をオサめることだ」の正しい漢字は？", a:"収める"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「お盆やお彼岸には仏前にたくさんの花をソナえる」の正しい漢字は？", a:"供える"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「昔は王様がこの雪国をオサめていた」の正しい漢字は？", a:"治める"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「努力が実り、成功をオサめた」の正しい漢字は？", a:"収めた"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「人生とはムジョウなものである」の正しい漢字は？", a:"無常"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「王様のムジョウな仕打ちに民衆はいかりくるった」の正しい漢字は？", a:"無情"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「物語はカンセツ的な表現で気持ちを表すことがある」の正しい漢字は？", a:"間接"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「かれは犯人の足取りを自分自身でオうことにした」の正しい漢字は？", a:"追う"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「かれは責任をオっていさぎよく辞職した」の正しい漢字は？", a:"負って"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「カゼをひくとカンセツがいたくなるときがある」の正しい漢字は？", a:"関節"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「自分が過ごしてきたハンセイをふりかえる」の正しい漢字は？", a:"半生"},
+  {cat:"漢字の書き取り（ヨウイ等・栄冠）", q:"「うそをついたことをハンセイする」の正しい漢字は？", a:"反省"},
+
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「入院して二週間たつころ、やっとカイホウに向かった」　ア解放／イ快方／ウ開放", a:"イ（快方）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「コウセイに名を残す大発見」　ア後世／イ攻勢／ウ構成", a:"ア（後世）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「祖父のイシをついで山を守る」　ア意思／イ遺志／ウ医師", a:"イ（遺志）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「地球にエイセイの平和が訪れることを願う」　ア衛生／イ衛星／ウ永世", a:"ウ（永世）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「妹はキショウがはげしいので、友だちとよくけんかする」　ア気象／イ気性／ウ起床", a:"イ（気性）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「シュウカン誌を定期的に読んでいる」　ア週間／イ週刊／ウ習慣", a:"イ（週刊）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「学習に取り組むタイセイをととのえる」　ア体勢／イ大勢／ウ体制", a:"ウ（体制）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「試合の後半、コウキをとらえて攻めに転じた」　ア好機／イ高貴／ウ好奇", a:"ア（好機）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「無茶な行動をとる若者が増えて、カンシンに堪えない」　ア感心／イ寒心／ウ関心", a:"イ（寒心）"},
+  {cat:"漢字の読み取り（栄冠・記号選択）", q:"「いきなりキカイだから、よく話し合おう」　ア機械／イ機会／ウ器械", a:"イ（機会）"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const CELEBRATION_PHOTOS = ["images/shakai7-complete.jpg", "images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration6.jpg"];
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("kokugo19_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("kokugo19_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "shuffle"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+let finished = false;
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
+function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.textContent = "";
+    arrowLabel.style.display = "none";
+    resetProgressBar();
+    return;
+  }
+  finished = false;
+  arrowLabel.style.display = "";
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.textContent = item.q;
+
+  answerBox.classList.add("no-transition");
+  answerBox.classList.remove("show");
+  void answerBox.offsetWidth;
+  answerText.textContent = item.a;
+  void answerBox.offsetWidth;
+  requestAnimationFrame(() => {
+    answerBox.classList.remove("no-transition");
+  });
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (finished) return;
+  if (!showingAnswer) {
+    answerBox.classList.add("show");
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  resetProgressBar();
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+updateMasteredCounter();
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
