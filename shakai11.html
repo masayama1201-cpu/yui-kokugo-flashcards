@@ -159,12 +159,12 @@
   </div>
 
   <div class="bottombar">
-    <button id="playPause">⏸ 停止</button>
+    <button id="playPause">■</button>
     <button id="restart">🔀 シャッフル</button>
     <button id="restartOrder">📖 テキスト順</button>
     <button id="masterBtn">✓ 覚えた</button>
     <button id="resetMastered">🔄 リセット</button>
-    <button onclick="window.open('shakai-review-5.html','_blank')">📊 整理</button>
+    <button onclick="window.open('shakai-review-5.html','_blank')">⭐</button>
   </div>
 </div>
 
@@ -372,12 +372,12 @@ function pause() {
   const elapsed = Date.now() - tickStart;
   remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
   progressBar.style.transition = "none";
-  playPauseBtn.textContent = "▶ 再生";
+  playPauseBtn.textContent = "▶";
 }
 
 function resume() {
   paused = false;
-  playPauseBtn.textContent = "⏸ 停止";
+  playPauseBtn.textContent = "■";
   tickStart = Date.now();
   timer = setTimeout(() => {
     step();
