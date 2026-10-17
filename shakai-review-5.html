@@ -253,9 +253,26 @@
     text-decoration: none;
     box-shadow: 0 4px 14px rgba(0,0,0,0.4);
   }
+  .backbtn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+  .backbtn:hover { background: #2a3644; }
 </style>
 </head>
 <body>
+<button class="backbtn" onclick="history.back()">← 戻る</button>
 <div class="wrap">
   <header>
     <h1>社会「天皇・貴族の政治と人々のくらし」整理ページ</h1>
