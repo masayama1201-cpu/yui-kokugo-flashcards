@@ -321,6 +321,7 @@ let timer = null;
 let tickStart = 0;
 let remainingOnPause = QUESTION_SECONDS * 1000;
 let finished = false;
+let currentMcOrder = null; // shuffled original-indices for the mc card currently on screen
 
 const questionEl = document.getElementById("question");
 const answerBox = document.getElementById("answerBox");
@@ -374,11 +375,13 @@ function renderCard() {
   if (item.type === "mc") {
     answerBox.style.display = "none";
     choiceWrap.style.display = "flex";
-    choiceBoxes.forEach((box, i) => {
+    currentMcOrder = shuffle(item.choices.map((_, i) => i));
+    choiceBoxes.forEach((box, slot) => {
       box.classList.remove("correct");
-      if (item.choices[i] !== undefined) {
+      if (slot < currentMcOrder.length) {
+        const origIndex = currentMcOrder[slot];
         box.classList.remove("hidden-choice");
-        box.innerHTML = CHOICE_LABELS[i] + "．" + item.choices[i];
+        box.innerHTML = CHOICE_LABELS[slot] + "．" + item.choices[origIndex];
       } else {
         box.classList.add("hidden-choice");
         box.innerHTML = "";
@@ -405,7 +408,8 @@ function step() {
   if (!showingAnswer) {
     const item = deck[idx];
     if (item.type === "mc") {
-      choiceBoxes[item.correct].classList.add("correct");
+      const correctSlot = currentMcOrder.indexOf(item.correct);
+      choiceBoxes[correctSlot].classList.add("correct");
     } else {
       answerBox.classList.add("show");
     }
