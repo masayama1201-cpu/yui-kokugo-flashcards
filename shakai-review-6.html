@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>社会（5年後期 第6回）整理ページ</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --card-bg2: #212e3d;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+    --warn: #ff8a7a;
+    --blue: #7db8ff;
+    --teal: #6fe3c8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  }
+  ruby { ruby-position: over; }
+  rt { font-size: 0.5em; font-weight: 600; color: var(--sub); user-select: none; }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 18px 80px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    font-size: 1.6rem;
+    margin: 0 0 6px;
+  }
+  header p {
+    color: var(--sub);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  .roundlink {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .roundlink a {
+    color: var(--blue);
+    font-size: 0.85rem;
+    text-decoration: none;
+    border-bottom: 1px dashed var(--blue);
+  }
+  nav.jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 20px 0 32px;
+  }
+  nav.jump a {
+    background: var(--card-bg);
+    color: var(--accent);
+    border: 1px solid rgba(255,179,71,0.4);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  nav.jump a:hover { background: #2a3644; }
+  section {
+    margin-bottom: 44px;
+    scroll-margin-top: 16px;
+  }
+  section h2 {
+    font-size: 1.25rem;
+    border-left: 6px solid var(--teal);
+    padding-left: 12px;
+    margin-bottom: 18px;
+  }
+  .note {
+    background: rgba(111,227,200,0.08);
+    border: 1px solid rgba(111,227,200,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--sub);
+    margin-bottom: 16px;
+  }
+
+  /* ===== 系図（チェーン表示） ===== */
+  .lineage {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-left: 5px solid var(--blue);
+  }
+  .lineage.warn { border-left-color: var(--warn); }
+  .lineage.teal { border-left-color: var(--teal); }
+  .lineage .label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .lineage.warn .label { background: rgba(255,138,122,0.18); color: var(--warn); }
+  .lineage .label.main { background: rgba(125,184,255,0.18); color: var(--blue); }
+  .lineage.teal .label { background: rgba(111,227,200,0.18); color: var(--teal); }
+  .flowrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  .flowrow .box {
+    background: var(--card-bg2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  .flowrow .sep { color: var(--sub); }
+  .lineage .desc {
+    margin-top: 10px;
+    color: var(--sub);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  /* ===== 年表 ===== */
+  .timeline {
+    position: relative;
+    padding-left: 24px;
+    border-left: 2px solid rgba(255,255,255,0.12);
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 18px;
+  }
+  .tl-item::before {
+    content: "";
+    position: absolute;
+    left: -29px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  .tl-item .year {
+    color: var(--teal);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .tl-item .event {
+    font-size: 0.95rem;
+    margin-top: 2px;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--sub);
+    font-size: 0.8rem;
+    margin-top: 40px;
+  }
+  .backtop {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    background: var(--teal);
+    color: #12181f;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>社会「武士の世の中と人々のくらし」整理ページ</h1>
+    <p>5年後期 第6回　学習用・見直し用まとめ</p>
+  </header>
+  <div class="roundlink">第5回の整理ページは → <a href="shakai-review-5.html">こちら</a></div>
+
+  <nav class="jump">
+    <a href="#other-fujiwara">① 別枝の藤原さん注意</a>
+    <a href="#genpei">② 源氏と平氏の流れ</a>
+    <a href="#timeline">③ かんたん年表</a>
+  </nav>
+
+  <section id="other-fujiwara">
+    <h2>① ⚠️ 摂関家とは別枝の「藤原さん」に注意！</h2>
+    <div class="note">「藤原」はもともと<ruby>藤原鎌足<rt>ふじわらのかまたり</rt></ruby>ひとりに与えられた名字。第5回で学んだ摂関家の藤原氏（道長・頼通たち、→第5回の整理ページ参照）とは血筋は<b>遠い親戚</b>だが、権力の中心（摂政・関白）を独占した一族そのものではなく、何代も前に分かれた別の枝にあたる。混同しないように整理しておこう。</div>
+
+    <div class="lineage warn">
+      <span class="label">別の枝①</span>
+      <div class="flowrow">
+        <span class="box"><ruby>藤原純友<rt>ふじわらのすみとも</rt></ruby></span><span class="sep">―</span>
+        <span class="box">935年ごろ、瀬戸内海で反乱</span>
+      </div>
+      <div class="desc">同じころ関東で乱を起こした<ruby>平将門<rt>たいらのまさかど</rt></ruby>とならべて語られることが多い。摂関家と同じ<ruby>藤原北家<rt>ふじわらほっけ</rt></ruby>の出身だが、権力の中枢からは外れた傍流で、出世できなかった不満が反乱の一因ともいわれる。</div>
+    </div>
+
+    <div class="lineage warn">
+      <span class="label">別の枝②</span>
+      <div class="flowrow">
+        <span class="box"><ruby>藤原清衡<rt>ふじわらのきよひら</rt></ruby></span><span class="sep">→</span>
+        <span class="box"><ruby>藤原基衡<rt>ふじわらのもとひら</rt></ruby></span><span class="sep">→</span>
+        <span class="box"><ruby>藤原秀衡<rt>ふじわらのひでひら</rt></ruby></span>
+      </div>
+      <div class="desc">
+        「<ruby>奥州藤原氏<rt>おうしゅうふじわらし</rt></ruby>」と呼ばれる東北・平泉の豪族。<ruby>藤原秀郷<rt>ふじわらのひでさと</rt></ruby>（藤原北家の武人の家系）の子孫とされ、こちらも摂関家とは遠い親戚にあたる武家の血筋。後三年合戦のあと、朝廷と関係をつくりながら<ruby>平泉<rt>ひらいずみ</rt></ruby>を拠点に栄え、清衡は金色堂で知られる<ruby>中尊寺<rt>ちゅうそんじ</rt></ruby>を建てた。源平合戦のあと<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>にほろぼされた。
+      </div>
+    </div>
+  </section>
+
+  <section id="genpei">
+    <h2>② 源氏と平氏の流れ</h2>
+    <div class="lineage">
+      <span class="label main">武士が力をつけていく流れ</span>
+      <div class="flowrow">
+        <span class="box">935年　<ruby>平将門<rt>たいらのまさかど</rt></ruby>の乱（関東・「新皇」を名乗る）</span><span class="sep">/</span>
+        <span class="box"><ruby>藤原純友<rt>ふじわらのすみとも</rt></ruby>の乱（瀬戸内海）</span>
+      </div>
+      <div class="flowrow" style="margin-top:8px;">
+        <span class="box">1083年　<ruby>後三年合戦<rt>ごさんねんかっせん</rt></ruby>（<ruby>源義家<rt>みなもとのよしいえ</rt></ruby>が活躍、褒美がなく自分の財産を家来に分けあたえる→武士からの信頼を集める）</span>
+      </div>
+      <div class="flowrow" style="margin-top:8px;">
+        <span class="box">1086年　<ruby>白河天皇<rt>しらかわてんのう</rt></ruby>の<ruby>院政<rt>いんせい</rt></ruby>開始</span><span class="sep">→</span>
+        <span class="box">1156年　<ruby>保元の乱<rt>ほうげんのらん</rt></ruby>（勝者：<ruby>後白河天皇<rt>ごしらかわてんのう</rt></ruby>側）</span><span class="sep">→</span>
+        <span class="box">平治の乱（<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が<ruby>源義朝<rt>みなもとのよしとも</rt></ruby>に勝つ）</span>
+      </div>
+      <div class="flowrow" style="margin-top:8px;">
+        <span class="box">1167年　<ruby>平清盛<rt>たいらのきよもり</rt></ruby>が武士で初めて<ruby>太政大臣<rt>だいじょうだいじん</rt></ruby>に</span><span class="sep">→</span>
+        <span class="box">日宋貿易（<ruby>大輪田泊<rt>おおわだのとまり</rt></ruby>・<ruby>厳島神社<rt>いつくしまじんじゃ</rt></ruby>）</span><span class="sep">→</span>
+        <span class="box">源平合戦</span><span class="sep">→</span>
+        <span class="box">奥州藤原氏ほろぶ</span><span class="sep">→</span>
+        <span class="box">1192年　鎌倉幕府成立</span>
+      </div>
+      <div class="desc">
+        ※「この一族でない人はみな今を時めく人でない」という平氏の権勢を表す言葉は、第5回で学んだ藤原道長の「この世をば…」の歌と同じ意味あいで問われることがある（→第5回の整理ページ参照）。
+      </div>
+    </div>
+  </section>
+
+  <section id="timeline">
+    <h2>③ かんたん年表（第6回の範囲）</h2>
+    <div class="timeline">
+      <div class="tl-item"><div class="year">935年</div><div class="event">平将門の乱・藤原純友の乱</div></div>
+      <div class="tl-item"><div class="year">1083年</div><div class="event">後三年合戦（源義家が活躍）</div></div>
+      <div class="tl-item"><div class="year">1086年</div><div class="event">白河天皇、院政を開始</div></div>
+      <div class="tl-item"><div class="year">1156年</div><div class="event">保元の乱</div></div>
+      <div class="tl-item"><div class="year">1167年</div><div class="event">平清盛、太政大臣に</div></div>
+      <div class="tl-item"><div class="year">1189年</div><div class="event">奥州藤原氏がほろぶ</div></div>
+      <div class="tl-item"><div class="year">1192年</div><div class="event">鎌倉幕府が成立</div></div>
+    </div>
+    <div class="note" style="margin-top:10px;">※この前（794年の平安京遷都〜1016年の藤原道長の全盛期）は第5回の整理ページに掲載しています。</div>
+  </section>
+
+  <footer>結衣さんの学習用整理ページ（社会 5年後期 第6回）</footer>
+</div>
+<a class="backtop" href="#">↑ 上へ</a>
+</body>
+</html>
