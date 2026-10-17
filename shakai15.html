@@ -255,7 +255,7 @@ const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
-let orderMode = "shuffle"; // "shuffle" | "sequential"
+let orderMode = "sequential"; // "shuffle" | "sequential"
 function makeDeck() {
   return orderMode === "sequential" ? DATA.slice() : shuffle(DATA);
 }
