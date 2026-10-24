@@ -13,62 +13,81 @@
   body {
     font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
     margin: 0;
-    padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    padding: 18px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
     background: #f7f8fa;
     color: #1e293b;
-    max-width: 560px;
+    max-width: 640px;
     margin-left: auto;
     margin-right: auto;
   }
-  h1 { font-size: 19px; margin: 4px 2px 4px; }
-  .sub { color: #64748b; font-size: 12px; margin: 0 2px 18px; }
-  .cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+  h1 { font-size: 19px; margin: 4px 2px 2px; }
+  .sub { color: #64748b; font-size: 12px; margin: 0 2px 16px; }
+  h2 { font-size: 14px; color: #334155; margin: 26px 2px 10px; }
+  .err { color: #dc2626; font-size: 13px; padding: 12px; background: #fef2f2; border-radius: 10px; margin-bottom: 14px; }
+  .loading { color: #94a3b8; font-size: 13px; padding: 16px; text-align: center; }
+
+  /* ===== 学習ログ ===== */
+  .cards { display: flex; flex-direction: column; gap: 8px; }
   .card {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: #fff; border-radius: 14px; padding: 14px 18px;
+    background: #fff; border-radius: 14px; padding: 12px 16px;
     border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   .card.ok { border-left: 6px solid #22c55e; }
-  .card.warn { border-left: 6px solid #f59e0b; }
   .card.bad { border-left: 6px solid #ef4444; }
-  .left { display: flex; flex-direction: column; gap: 2px; }
   .name { font-size: 15px; font-weight: 700; }
-  .status { font-size: 13px; color: #475569; }
-  .status b { font-size: 18px; }
+  .status { font-size: 13px; margin-top: 2px; }
   .card.ok .status { color: #16a34a; }
-  .card.warn .status { color: #b45309; }
   .card.bad .status { color: #dc2626; }
   button.done {
-    min-height: 44px;
+    min-height: 40px;
     background: #1e293b; color: #fff; border: none; border-radius: 999px;
-    padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
   }
-  button.done:active { transform: scale(0.97); }
   button.done.today { background: #cbd5e1; color: #475569; }
-  h2 { font-size: 14px; color: #334155; margin: 0 0 10px; }
-  .log { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; }
-  .log-row { display: flex; gap: 10px; padding: 9px 16px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-  .log-row:last-child { border-bottom: none; }
-  .log-row .d { color: #94a3b8; width: 86px; flex-shrink: 0; }
-  .empty, .loading { color: #94a3b8; font-size: 13px; padding: 16px; text-align: center; }
-  .err { color: #dc2626; font-size: 13px; padding: 12px; background: #fef2f2; border-radius: 10px; margin-bottom: 14px; }
+
+  /* ===== 宿題カレンダー ===== */
+  .monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .monthbar button { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; width: 38px; height: 38px; font-size: 15px; cursor: pointer; }
+  .monthbar .label { font-size: 15px; font-weight: 700; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .dow { text-align: center; font-size: 11px; color: #94a3b8; padding-bottom: 4px; }
+  .day { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; min-height: 70px; padding: 4px 4px 6px; display: flex; flex-direction: column; gap: 2px; }
+  .day.pad { background: transparent; border: none; }
+  .day.today { border: 2px solid #1e293b; }
+  .daynum { font-size: 11px; color: #94a3b8; text-align: right; padding-right: 2px; }
+  .day.today .daynum { color: #1e293b; font-weight: 700; }
+  .chip { font-size: 10px; border-radius: 6px; padding: 2px 4px; display: flex; align-items: center; justify-content: space-between; gap: 2px; cursor: pointer; line-height: 1.3; }
+  .chip.done { background: #dcfce7; color: #166534; }
+  .chip.undone-future { background: #f1f5f9; color: #64748b; }
+  .chip.undone-overdue { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+
   footer { text-align: center; color: #cbd5e1; font-size: 11px; margin-top: 30px; }
 </style>
 </head>
 <body>
   <h1>結衣さんの学習ログ</h1>
-  <p class="sub">今日やった項目はボタンをタップ。数字は「最後にやった日からの経過日数」です。</p>
+  <p class="sub">日々の課題と、授業の宿題をまとめて管理します。</p>
   <div id="errBox"></div>
+
+  <h2>日々の課題</h2>
   <div id="cards" class="cards"><div class="loading">読み込み中…</div></div>
-  <h2>最近の実績</h2>
-  <div id="log" class="log"></div>
+
+  <h2>宿題カレンダー（第7回・第8回）</h2>
+  <div class="monthbar">
+    <button id="prevBtn">◀</button>
+    <div class="label" id="monthLabel"></div>
+    <button id="nextBtn">▶</button>
+  </div>
+  <div class="grid" id="grid"><div class="loading">読み込み中…</div></div>
+
   <footer>結衣さんの学習ログ（Firebase版）</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, getDocs,
+  getFirestore, collection, doc, setDoc, updateDoc, getDocs,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -79,11 +98,23 @@ const firebaseConfig = {
   messagingSenderId: "422930044760",
   appId: "1:422930044760:web:eeca389e974968d8cef72d",
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const LOGS = collection(db, "logs");
+const HW = collection(db, "homework");
 
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function pad(n) { return String(n).padStart(2, "0"); }
+function todayCompact() { return todayStr().replace(/-/g, ""); }
+
+function showError(msg) {
+  document.getElementById("errBox").innerHTML = '<div class="err">' + msg + "</div>";
+}
+
+/* ========== 日々の課題（学習ログ） ========== */
 const CATS = [
   { name: "計算", code: "calc" },
   { name: "社会の基礎", code: "shakai" },
@@ -91,20 +122,7 @@ const CATS = [
   { name: "育成テストの見直し", code: "review" },
 ];
 
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-function todayCompact() {
-  return todayStr().replace(/-/g, "");
-}
-function daysBetween(dateStr, todayS) {
-  const a = new Date(dateStr + "T00:00:00");
-  const b = new Date(todayS + "T00:00:00");
-  return Math.round((b - a) / 86400000);
-}
-
-async function readAll() {
+async function readLogs() {
   const snap = await getDocs(LOGS);
   const items = [];
   snap.forEach((d) => items.push(d.data()));
@@ -115,76 +133,133 @@ async function markDone(cat) {
   const id = todayCompact() + "-" + cat.code;
   try {
     await setDoc(doc(db, "logs", id), { date: todayStr(), category: cat.name });
-    render();
+    renderLogs();
   } catch (e) {
     showError("記録に失敗しました: " + e.message);
   }
 }
 
-function showError(msg) {
-  document.getElementById("errBox").innerHTML = '<div class="err">' + msg + "</div>";
-}
-
-async function render() {
+async function renderLogs() {
   let items;
   try {
-    items = await readAll();
-    document.getElementById("errBox").innerHTML = "";
+    items = await readLogs();
   } catch (e) {
-    showError("読み込みに失敗しました: " + e.message);
+    showError("学習ログの読み込みに失敗しました: " + e.message);
     document.getElementById("cards").innerHTML = "";
     return;
   }
-
   const today = todayStr();
   const latest = {};
   for (const it of items) {
     if (!it.date || !it.category) continue;
     if (!latest[it.category] || it.date > latest[it.category]) latest[it.category] = it.date;
   }
-
-  const rows = CATS.map((cat) => {
-    const last = latest[cat.name];
-    const backlog = last ? daysBetween(last, today) : null;
-    return { cat, last, backlog };
-  }).sort((a, b) => (b.backlog === null ? 9999 : b.backlog) - (a.backlog === null ? 9999 : a.backlog));
-
   const cardsEl = document.getElementById("cards");
   cardsEl.innerHTML = "";
-  for (const row of rows) {
-    const { cat, backlog } = row;
+  for (const cat of CATS) {
+    const doneToday = latest[cat.name] === today;
     const div = document.createElement("div");
-    let level, statusText;
-    if (backlog === null) {
-      level = "bad"; statusText = "記録がありません";
-    } else if (backlog <= 0) {
-      level = "ok"; statusText = "今日やりました！";
-    } else {
-      level = backlog >= 3 ? "bad" : "warn";
-      statusText = "<b>" + backlog + "日分</b> たまっています";
-    }
-    div.className = "card " + level;
+    div.className = "card " + (doneToday ? "ok" : "bad");
     div.innerHTML =
-      '<div class="left"><div class="name">' + cat.name + '</div><div class="status">' + statusText + "</div></div>" +
-      '<button class="done' + (backlog === 0 ? " today" : "") + '" data-code="' + cat.code + '">' +
-      (backlog === 0 ? "✓ 完了" : "今日やった") + "</button>";
+      '<div><div class="name">' + cat.name + '</div><div class="status">' + (doneToday ? "✓ 済" : "⚠ たまっています") + "</div></div>" +
+      '<button class="done' + (doneToday ? " today" : "") + '" data-code="' + cat.code + '">' +
+      (doneToday ? "✓ 完了" : "今日やった") + "</button>";
     cardsEl.appendChild(div);
   }
   cardsEl.querySelectorAll("button.done").forEach((btn) => {
     btn.onclick = () => markDone(CATS.find((c) => c.code === btn.dataset.code));
   });
-
-  const sorted = items.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  const logEl = document.getElementById("log");
-  logEl.innerHTML = sorted.length === 0
-    ? '<div class="empty">まだ記録がありません</div>'
-    : sorted.slice(0, 20).map((it) =>
-        '<div class="log-row"><span class="d">' + (it.date || "") + '</span><span>' + (it.category || "") +
-        (it.note ? "　" + it.note : "") + "</span></div>"
-      ).join("");
 }
 
-render();
+/* ========== 宿題カレンダー ========== */
+const SUBJECT_SHORT = { "国語": "国", "算数": "算", "社会": "社", "理科": "理" };
+const DOW = ["日", "月", "火", "水", "木", "金", "土"];
+let viewYear, viewMonth;
+{
+  const t = new Date();
+  viewYear = t.getFullYear();
+  viewMonth = t.getMonth();
+}
+let hwItems = [];
+
+async function readHomework() {
+  const snap = await getDocs(HW);
+  const arr = [];
+  snap.forEach((d) => arr.push({ id: d.id, ...d.data() }));
+  return arr;
+}
+
+async function toggleDone(item) {
+  try {
+    await updateDoc(doc(db, "homework", item.id), { done: !item.done });
+    item.done = !item.done;
+    renderCalendar();
+  } catch (e) {
+    showError("更新に失敗しました: " + e.message);
+  }
+}
+
+function renderCalendar() {
+  const today = todayStr();
+  const first = new Date(viewYear, viewMonth, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  document.getElementById("monthLabel").textContent = viewYear + "年" + (viewMonth + 1) + "月";
+
+  const byDate = {};
+  for (const it of hwItems) {
+    if (!it.lessonDate) continue;
+    (byDate[it.lessonDate] = byDate[it.lessonDate] || []).push(it);
+  }
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = DOW.map((d) => '<div class="dow">' + d + "</div>").join("");
+  for (let i = 0; i < startDow; i++) grid.innerHTML += '<div class="day pad"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = viewYear + "-" + pad(viewMonth + 1) + "-" + pad(d);
+    const isToday = dateStr === today;
+    const dayItems = byDate[dateStr] || [];
+    const cell = document.createElement("div");
+    cell.className = "day" + (isToday ? " today" : "");
+    let html = '<div class="daynum">' + d + "</div>";
+    for (const it of dayItems) {
+      let cls = "undone-future", mark = "・";
+      if (it.done) { cls = "done"; mark = "✓"; }
+      else if (dateStr <= today) { cls = "undone-overdue"; mark = "✗"; }
+      html += '<div class="chip ' + cls + '" data-id="' + it.id + '"><span>' + SUBJECT_SHORT[it.subject] + it.round + "</span><span>" + mark + "</span></div>";
+    }
+    cell.innerHTML = html;
+    grid.appendChild(cell);
+  }
+  grid.querySelectorAll(".chip").forEach((chip) => {
+    chip.onclick = () => {
+      const item = hwItems.find((it) => it.id === chip.dataset.id);
+      if (item) toggleDone(item);
+    };
+  });
+}
+
+document.getElementById("prevBtn").onclick = () => {
+  viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCalendar();
+};
+document.getElementById("nextBtn").onclick = () => {
+  viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCalendar();
+};
+
+async function init() {
+  await renderLogs();
+  try {
+    hwItems = await readHomework();
+  } catch (e) {
+    showError("宿題カレンダーの読み込みに失敗しました: " + e.message);
+    document.getElementById("grid").innerHTML = "";
+    return;
+  }
+  renderCalendar();
+}
+init();
 </script>
 </body>
 </html>
