@@ -44,7 +44,7 @@
   .daynum { font-size: 14px; color: #94a3b8; text-align: right; padding-right: 2px; font-weight: 600; }
   .day.today .daynum { color: #1e293b; font-weight: 800; }
 
-  .dailyrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+  .dailyrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
   .dot {
     font-size: 15px; font-weight: 800; text-align: center; border-radius: 5px;
     padding: 3px 0; cursor: pointer; line-height: 1.3;
@@ -61,6 +61,7 @@
   .chip.done { background: #dcfce7; color: #166534; }
   .chip.undone-future { background: #f1f5f9; color: #94a3b8; }
   .chip.undone-overdue { background: #fff7ed; color: #c2410c; }
+  .chip.undone-overdue.review { background: #ede9fe; color: #6d28d9; }
 
   footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
 
@@ -73,11 +74,12 @@
 </head>
 <body>
   <h1>結衣さんの学習カレンダー</h1>
-  <p class="sub">日々の課題（計・社・理・見）と宿題（国算社理＋回）をまとめて管理します。タップで完了/未完了を切り替えます。</p>
+  <p class="sub">日々の課題（計・社・理）、授業の宿題、育成テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。</p>
   <div class="legend">
     <span><span class="sw" style="background:#dcfce7"></span>済</span>
-    <span><span class="sw" style="background:#fee2e2"></span>未（計算・基礎・見直し）</span>
+    <span><span class="sw" style="background:#fee2e2"></span>未（日々の課題）</span>
     <span><span class="sw" style="background:#fff7ed"></span>未（宿題）</span>
+    <span><span class="sw" style="background:#ede9fe"></span>未（見直し）</span>
     <span><span class="sw" style="background:#f1f5f9"></span>まだ先</span>
   </div>
   <div id="errBox"></div>
@@ -89,7 +91,7 @@
   </div>
   <div class="grid" id="grid"><div class="loading">読み込み中…</div></div>
 
-  <footer>結衣さんの学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎　見=育成テストの見直し</footer>
+  <footer>結衣さんの学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -114,7 +116,6 @@ const DAILY_CATS = [
   { name: "計算", code: "calc", short: "計" },
   { name: "社会の基礎", code: "shakai", short: "社" },
   { name: "理科の基礎", code: "rika", short: "理" },
-  { name: "育成テストの見直し", code: "review", short: "見" },
 ];
 const SUBJECT_SHORT = { "国語": "国", "算数": "算", "社会": "社", "理科": "理" };
 const DOW = ["日", "月", "火", "水", "木", "金", "土"];
@@ -212,10 +213,12 @@ function renderCalendar() {
 
     const dayHw = hwByDate[dateStr] || [];
     for (const it of dayHw) {
+      const isReview = it.type === "見直し";
       let cls = "undone-future";
       if (it.done) cls = "done";
-      else if (dateStr <= today) cls = "undone-overdue";
-      html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + SUBJECT_SHORT[it.subject] + it.round + "</div>";
+      else if (dateStr <= today) cls = "undone-overdue" + (isReview ? " review" : "");
+      const label = isReview ? SUBJECT_SHORT[it.subject] + "見" : SUBJECT_SHORT[it.subject] + (it.round || "");
+      html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
     }
     cell.innerHTML = html;
     grid.appendChild(cell);
