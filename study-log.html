@@ -13,56 +13,62 @@
   body {
     font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
     margin: 0;
-    padding: 18px;
-    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+    padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: #f7f8fa;
     color: #1e293b;
-    max-width: 680px;
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
   }
-  h1 { font-size: 19px; margin: 4px 2px 2px; }
-  .sub { color: #64748b; font-size: 12px; margin: 0 2px 16px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #64748b; margin: 0 2px 14px; }
-  .legend span.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 3px; vertical-align: -1px; }
-  .err { color: #dc2626; font-size: 13px; padding: 12px; background: #fef2f2; border-radius: 10px; margin-bottom: 14px; }
-  .loading { color: #94a3b8; font-size: 13px; padding: 16px; text-align: center; }
+  h1 { font-size: 24px; margin: 4px 2px 4px; }
+  .sub { color: #64748b; font-size: 15px; margin: 0 2px 18px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; color: #475569; margin: 0 2px 16px; }
+  .legend span.sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
+  .err { color: #dc2626; font-size: 15px; padding: 14px; background: #fef2f2; border-radius: 10px; margin-bottom: 16px; }
+  .loading { color: #94a3b8; font-size: 15px; padding: 20px; text-align: center; }
 
-  .monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .monthbar button { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; width: 38px; height: 38px; font-size: 15px; cursor: pointer; }
-  .monthbar .label { font-size: 16px; font-weight: 700; }
+  .monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .monthbar button { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; width: 48px; height: 48px; font-size: 18px; cursor: pointer; }
+  .monthbar .label { font-size: 22px; font-weight: 700; }
 
-  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-  .dow { text-align: center; font-size: 11px; color: #94a3b8; padding-bottom: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .dow { text-align: center; font-size: 13px; font-weight: 700; color: #94a3b8; padding-bottom: 6px; }
   .day {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-    min-height: 92px; padding: 4px 4px 5px;
+    min-height: 128px; padding: 4px 3px 4px;
     display: flex; flex-direction: column; gap: 3px;
   }
   .day.pad { background: transparent; border: none; }
-  .day.today { border: 2px solid #1e293b; }
-  .daynum { font-size: 11px; color: #94a3b8; text-align: right; padding-right: 1px; }
-  .day.today .daynum { color: #1e293b; font-weight: 700; }
+  .day.today { border: 3px solid #1e293b; }
+  .daynum { font-size: 14px; color: #94a3b8; text-align: right; padding-right: 2px; font-weight: 600; }
+  .day.today .daynum { color: #1e293b; font-weight: 800; }
 
-  .dailyrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+  .dailyrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
   .dot {
-    font-size: 9px; font-weight: 700; text-align: center; border-radius: 4px;
-    padding: 2px 0; cursor: pointer; line-height: 1.2;
+    font-size: 15px; font-weight: 800; text-align: center; border-radius: 5px;
+    padding: 3px 0; cursor: pointer; line-height: 1.3;
   }
   .dot.done { background: #dcfce7; color: #166534; }
   .dot.bad { background: #fee2e2; color: #b91c1c; }
   .dot.future { background: #f1f5f9; color: #cbd5e1; cursor: default; }
 
   .chip {
-    font-size: 10px; border-radius: 6px; padding: 2px 4px;
-    display: flex; align-items: center; justify-content: space-between; gap: 2px;
+    font-size: 13px; font-weight: 700; border-radius: 6px; padding: 3px 5px;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
     cursor: pointer; line-height: 1.3;
   }
   .chip.done { background: #dcfce7; color: #166534; }
   .chip.undone-future { background: #f1f5f9; color: #94a3b8; }
-  .chip.undone-overdue { background: #fff7ed; color: #c2410c; font-weight: 700; }
+  .chip.undone-overdue { background: #fff7ed; color: #c2410c; }
 
-  footer { text-align: center; color: #cbd5e1; font-size: 11px; margin-top: 30px; }
+  footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
+
+  @media (max-width: 480px) {
+    .day { min-height: 110px; }
+    .dot { font-size: 13px; }
+    .chip { font-size: 11px; }
+  }
 </style>
 </head>
 <body>
@@ -197,19 +203,19 @@ function renderCalendar() {
     html += '<div class="dailyrow">';
     for (const cat of DAILY_CATS) {
       const done = doneSet.has(dateStr + "|" + cat.name);
-      let cls = "future", mark = cat.short;
-      if (done) { cls = "done"; mark = cat.short + "✓"; }
-      else if (!isFuture) { cls = "bad"; mark = cat.short + "！"; }
-      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-done="' + done + '">' + mark + "</div>";
+      let cls = "future";
+      if (done) cls = "done";
+      else if (!isFuture) cls = "bad";
+      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-done="' + done + '">' + cat.short + "</div>";
     }
     html += "</div>";
 
     const dayHw = hwByDate[dateStr] || [];
     for (const it of dayHw) {
-      let cls = "undone-future", mark = "・";
-      if (it.done) { cls = "done"; mark = "✓"; }
-      else if (dateStr <= today) { cls = "undone-overdue"; mark = "！"; }
-      html += '<div class="chip ' + cls + '" data-id="' + it.id + '"><span>' + SUBJECT_SHORT[it.subject] + it.round + "</span><span>" + mark + "</span></div>";
+      let cls = "undone-future";
+      if (it.done) cls = "done";
+      else if (dateStr <= today) cls = "undone-overdue";
+      html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + SUBJECT_SHORT[it.subject] + it.round + "</div>";
     }
     cell.innerHTML = html;
     grid.appendChild(cell);
