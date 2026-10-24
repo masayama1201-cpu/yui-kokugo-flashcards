@@ -208,7 +208,8 @@ function renderCalendar() {
       let cls = "future";
       if (done) cls = "done";
       else if (!isFuture) cls = "bad";
-      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-done="' + done + '">' + cat.short + "</div>";
+      const label = cat.short + (done ? " ✓" : "");
+      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-done="' + done + '">' + label + "</div>";
     }
     html += "</div>";
 
@@ -220,7 +221,7 @@ function renderCalendar() {
       let cls = "undone-future";
       if (it.done) cls = "done";
       else if (dateStr <= today) cls = "undone-overdue" + (isReview ? " review" : "");
-      const label = isReview ? "テスト直し " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "");
+      const label = (isReview ? "テスト直し " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + (it.done ? " ✓" : "");
       html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
     }
     cell.innerHTML = html;
