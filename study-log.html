@@ -63,6 +63,19 @@
   .chip.undone-overdue { background: #fff7ed; color: #c2410c; }
   .chip.undone-overdue.review { background: #ede9fe; color: #6d28d9; }
 
+  h2 { font-size: 16px; color: #334155; margin: 24px 2px 10px; }
+  .summary { display: flex; flex-wrap: wrap; gap: 10px; }
+  .scard {
+    flex: 1 1 130px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 14px; text-align: center;
+  }
+  .scard .n { font-size: 26px; font-weight: 800; line-height: 1.1; }
+  .scard .l { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .scard.zero .n { color: #16a34a; }
+  .scard.some .n { color: #b45309; }
+  .scard.some.hw .n { color: #c2410c; }
+  .scard.some.review .n { color: #6d28d9; }
+
   footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
 
   @media (max-width: 480px) {
@@ -90,6 +103,9 @@
     <button id="nextBtn">▶</button>
   </div>
   <div class="grid" id="grid"><div class="loading">読み込み中…</div></div>
+
+  <h2 id="summaryHeading">現在の滞留状況</h2>
+  <div class="summary" id="summary"></div>
 
   <footer id="pageFooter">学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
 
@@ -175,6 +191,7 @@ async function toggleDaily(dateStr, cat, isDoneNow) {
       logItems.push({ date: dateStr, category: cat.name });
     }
     renderCalendar();
+    renderSummary();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
@@ -185,9 +202,43 @@ async function toggleHomework(item) {
     await updateDoc(doc(db, student.hwCol, item.id), { done: !item.done });
     item.done = !item.done;
     renderCalendar();
+    renderSummary();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
+}
+
+const BACKLOG_WINDOW_DAYS = 14;
+
+function renderSummary() {
+  const today = todayStr();
+  const todayDate = new Date(today + "T00:00:00");
+
+  const doneSet = new Set(logItems.map((it) => it.date + "|" + it.category));
+  const dailyCounts = DAILY_CATS.map((cat) => {
+    let n = 0;
+    for (let i = 0; i < BACKLOG_WINDOW_DAYS; i++) {
+      const d = new Date(todayDate);
+      d.setDate(d.getDate() - i);
+      const ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+      if (!doneSet.has(ds + "|" + cat.name)) n++;
+    }
+    return { label: cat.name, n };
+  });
+
+  const hwCount = hwItems.filter((it) => it.type !== "見直し" && !it.done && (it.lessonDate || "") <= today).length;
+  const reviewCount = hwItems.filter((it) => it.type === "見直し" && !it.done && (it.lessonDate || "") <= today).length;
+
+  const cards = [
+    ...dailyCounts,
+    { label: "宿題", n: hwCount, cls: "hw" },
+    { label: "見直し", n: reviewCount, cls: "review" },
+  ];
+
+  document.getElementById("summary").innerHTML = cards.map((c) =>
+    '<div class="scard ' + (c.n === 0 ? "zero" : "some " + (c.cls || "")) + '">' +
+    '<div class="n">' + c.n + '</div><div class="l">' + c.label + "</div></div>"
+  ).join("");
 }
 
 function renderCalendar() {
@@ -276,6 +327,7 @@ async function init() {
     return;
   }
   renderCalendar();
+  renderSummary();
 }
 init();
 </script>
