@@ -64,9 +64,6 @@
   .chip.undone-overdue.review { background: #ede9fe; color: #6d28d9; }
 
   footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
-  .switcher { margin: 0 2px 10px; font-size: 13px; }
-  .switcher a { color: #94a3b8; text-decoration: none; margin-right: 12px; }
-  .switcher a.active { color: #1e293b; font-weight: 800; border-bottom: 2px solid #1e293b; }
 
   @media (max-width: 480px) {
     .day { min-height: 110px; }
@@ -76,7 +73,6 @@
 </style>
 </head>
 <body>
-  <div class="switcher" id="switcher"></div>
   <h1 id="pageTitle">学習カレンダー</h1>
   <p class="sub">日々の課題（計・社・理）、授業の宿題、育成テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。</p>
   <div class="legend">
@@ -122,9 +118,6 @@ const student = STUDENTS[studentKey];
 
 document.title = student.name + "さんの学習カレンダー";
 document.getElementById("pageTitle").textContent = student.name + "さんの学習カレンダー";
-document.getElementById("switcher").innerHTML = Object.entries(STUDENTS).map(([key, s]) =>
-  '<a href="?student=' + key + '" class="' + (key === studentKey ? "active" : "") + '">' + s.name + "さん</a>"
-).join("");
 document.getElementById("pageFooter").textContent =
   student.name + "さんの学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」";
 
