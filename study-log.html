@@ -104,7 +104,7 @@
   </div>
   <div class="grid" id="grid"><div class="loading">読み込み中…</div></div>
 
-  <h2 id="summaryHeading">現在の滞留状況</h2>
+  <h2 id="summaryHeading">現在の滞留状況（2026/10/1〜今日の累計）</h2>
   <div class="summary" id="summary"></div>
 
   <footer id="pageFooter">学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
@@ -208,18 +208,20 @@ async function toggleHomework(item) {
   }
 }
 
-const BACKLOG_WINDOW_DAYS = 14;
+const TRACKING_START_DATE = "2026-10-01";
 
 function renderSummary() {
   const today = todayStr();
   const todayDate = new Date(today + "T00:00:00");
+  const startDate = new Date(TRACKING_START_DATE + "T00:00:00");
+  const totalDays = Math.max(1, Math.round((todayDate - startDate) / 86400000) + 1);
 
   const doneSet = new Set(logItems.map((it) => it.date + "|" + it.category));
   const dailyCounts = DAILY_CATS.map((cat) => {
     let n = 0;
-    for (let i = 0; i < BACKLOG_WINDOW_DAYS; i++) {
-      const d = new Date(todayDate);
-      d.setDate(d.getDate() - i);
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
       const ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
       if (!doneSet.has(ds + "|" + cat.name)) n++;
     }
