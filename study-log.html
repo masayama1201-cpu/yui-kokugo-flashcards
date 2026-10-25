@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#12181f">
-<title>結衣さんの学習カレンダー</title>
+<title>学習カレンダー</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -64,6 +64,9 @@
   .chip.undone-overdue.review { background: #ede9fe; color: #6d28d9; }
 
   footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
+  .switcher { margin: 0 2px 10px; font-size: 13px; }
+  .switcher a { color: #94a3b8; text-decoration: none; margin-right: 12px; }
+  .switcher a.active { color: #1e293b; font-weight: 800; border-bottom: 2px solid #1e293b; }
 
   @media (max-width: 480px) {
     .day { min-height: 110px; }
@@ -73,7 +76,8 @@
 </style>
 </head>
 <body>
-  <h1>結衣さんの学習カレンダー</h1>
+  <div class="switcher" id="switcher"></div>
+  <h1 id="pageTitle">学習カレンダー</h1>
   <p class="sub">日々の課題（計・社・理）、授業の宿題、育成テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。</p>
   <div class="legend">
     <span><span class="sw" style="background:#dcfce7"></span>済</span>
@@ -91,7 +95,7 @@
   </div>
   <div class="grid" id="grid"><div class="loading">読み込み中…</div></div>
 
-  <footer>結衣さんの学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
+  <footer id="pageFooter">学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -107,10 +111,27 @@ const firebaseConfig = {
   messagingSenderId: "422930044760",
   appId: "1:422930044760:web:eeca389e974968d8cef72d",
 };
+const STUDENTS = {
+  yui:    { name: "結衣", logsCol: "logs",         hwCol: "homework" },
+  daichi: { name: "大智", logsCol: "logs_daichi",  hwCol: "homework_daichi" },
+};
+const studentKey = new URLSearchParams(location.search).get("student") in STUDENTS
+  ? new URLSearchParams(location.search).get("student")
+  : "yui";
+const student = STUDENTS[studentKey];
+
+document.title = student.name + "さんの学習カレンダー";
+document.getElementById("pageTitle").textContent = student.name + "さんの学習カレンダー";
+document.getElementById("switcher").innerHTML = Object.entries(STUDENTS).map(([key, s]) =>
+  '<a href="?student=' + key + '" class="' + (key === studentKey ? "active" : "") + '">' + s.name + "さん</a>"
+).join("");
+document.getElementById("pageFooter").textContent =
+  student.name + "さんの学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」";
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const LOGS = collection(db, "logs");
-const HW = collection(db, "homework");
+const LOGS = collection(db, student.logsCol);
+const HW = collection(db, student.hwCol);
 
 const DAILY_CATS = [
   { name: "計算", code: "calc", short: "計" },
@@ -154,10 +175,10 @@ async function toggleDaily(dateStr, cat, isDoneNow) {
   const id = dateStr.replace(/-/g, "") + "-" + cat.code;
   try {
     if (isDoneNow) {
-      await deleteDoc(doc(db, "logs", id));
+      await deleteDoc(doc(db, student.logsCol, id));
       logItems = logItems.filter((it) => !(it.date === dateStr && it.category === cat.name));
     } else {
-      await setDoc(doc(db, "logs", id), { date: dateStr, category: cat.name });
+      await setDoc(doc(db, student.logsCol, id), { date: dateStr, category: cat.name });
       logItems.push({ date: dateStr, category: cat.name });
     }
     renderCalendar();
@@ -168,7 +189,7 @@ async function toggleDaily(dateStr, cat, isDoneNow) {
 
 async function toggleHomework(item) {
   try {
-    await updateDoc(doc(db, "homework", item.id), { done: !item.done });
+    await updateDoc(doc(db, student.hwCol, item.id), { done: !item.done });
     item.done = !item.done;
     renderCalendar();
   } catch (e) {
