@@ -310,13 +310,26 @@ function renderCalendar() {
   });
 }
 
+const MIN_YEAR = 2026, MIN_MONTH = 9; // 2026年10月（0始まり月）= TRACKING_START_DATEと同じ月。これより前には戻れない
+
+function updateNavButtons() {
+  const atMin = viewYear === MIN_YEAR && viewMonth === MIN_MONTH;
+  const prevBtn = document.getElementById("prevBtn");
+  prevBtn.disabled = atMin;
+  prevBtn.style.opacity = atMin ? "0.3" : "1";
+  prevBtn.style.cursor = atMin ? "default" : "pointer";
+}
+
 document.getElementById("prevBtn").onclick = () => {
+  if (viewYear === MIN_YEAR && viewMonth === MIN_MONTH) return;
   viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
   renderCalendar();
+  updateNavButtons();
 };
 document.getElementById("nextBtn").onclick = () => {
   viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
   renderCalendar();
+  updateNavButtons();
 };
 
 async function init() {
@@ -330,6 +343,7 @@ async function init() {
   }
   renderCalendar();
   renderSummary();
+  updateNavButtons();
 }
 init();
 </script>
