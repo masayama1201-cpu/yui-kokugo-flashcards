@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>結衣さん フラッシュカード一覧</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 18px calc(40px + env(safe-area-inset-bottom));
+  }
+  h1 {
+    font-size: 24px;
+    margin: 4px 0 2px;
+    color: var(--accent);
+  }
+  .sub {
+    color: var(--sub);
+    font-size: 14px;
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+  .hint {
+    background: rgba(255,179,71,0.1);
+    border: 1px solid rgba(255,179,71,0.3);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--sub);
+    line-height: 1.7;
+    margin-bottom: 26px;
+  }
+  .hint b { color: var(--accent); }
+  section { margin-bottom: 30px; }
+  h2 {
+    font-size: 17px;
+    margin: 0 0 10px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+    color: var(--text);
+  }
+  .group {
+    font-size: 13px;
+    color: var(--sub);
+    margin: 14px 0 6px 2px;
+  }
+  .items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  a.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--card-bg);
+    border: 1px solid #2a3644;
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  a.item:active { background: #243041; }
+  a.item .label {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  a.item .badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--answer);
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+  }
+  a.item .badge.stage { background: var(--accent); }
+  a.item .arrow {
+    flex-shrink: 0;
+    color: var(--sub);
+    font-size: 18px;
+  }
+  footer {
+    margin-top: 30px;
+    text-align: center;
+    color: var(--sub);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📚 結衣さん フラッシュカード一覧</h1>
+  <p class="sub">ここから各教科・各回の問題を開けます。</p>
+  <div class="hint">
+    💡 <b>このページをホーム画面に追加</b>しておくと、次からはアイコンをタップするだけで一覧が開けます。<br>
+    Safariの共有ボタン（□に↑）→「ホーム画面に追加」で登録できます。
+  </div>
+
+  <section>
+    <h2>📖 国語</h2>
+    <div class="group">本科＋栄冠・最新版</div>
+    <div class="items">
+      <a class="item" href="kokugo15.html"><span class="label">第3回「かなづかい・符号」（37枚）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo16.html"><span class="label">第4回「熟語の組み立て」（52枚）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo18.html"><span class="label">第5回「三字・四字熟語」（58枚）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo19.html"><span class="label">第6回「同音異義語・同訓異字」（71枚）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo17.html"><span class="label">語句のたしなみ P28-31（Aランク52語）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo14.html"><span class="label">第2回「おくりがな」2択クイズ（30枚）</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">初期版</div>
+    <div class="items">
+      <a class="item" href="index.html"><span class="label">語句・慣用句・誤字訂正 スライドショー</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo7.html"><span class="label">語句・慣用句・誤字訂正②</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo8.html"><span class="label">語句のたしなみ③</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo9.html"><span class="label">語句のたしなみ④</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo13.html"><span class="label">第3回「かなづかい・符号」（旧版）</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo2.html"><span class="label">国語A</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo3.html"><span class="label">国語B</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo4.html"><span class="label">国語C</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo5.html"><span class="label">国語D</span><span class="arrow">›</span></a>
+      <a class="item" href="kokugo6.html"><span class="label">国語E</span><span class="arrow">›</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔬 理科</h2>
+    <div class="items">
+      <a class="item" href="rika1.html"><span class="label">第1回「地形と岩石」（46枚）</span><span class="arrow">›</span></a>
+      <a class="item" href="rika2.html"><span class="label">第2回「地層からわかること」（41枚）</span><span class="arrow">›</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>🏯 社会</h2>
+    <div class="group">第1回：原始の人々のくらし</div>
+    <div class="items">
+      <a class="item" href="shakai1.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai2.html"><span class="label">②完成編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai3.html"><span class="label">③補足＋α</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第2回：ムラからクニへ</div>
+    <div class="items">
+      <a class="item" href="shakai4.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai5.html"><span class="label">②完成編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai6.html"><span class="label">③補足＋α</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第3回：大和政権と天皇中心の国づくり</div>
+    <div class="items">
+      <a class="item" href="shakai7.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai8.html"><span class="label">②完成編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai9.html"><span class="label">③補足＋α</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第4回：律令国家・天平文化</div>
+    <div class="items">
+      <a class="item" href="shakai10.html"><span class="label">①入門編（栄冠のみ）</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第5回：天皇・貴族の政治</div>
+    <div class="items">
+      <a class="item" href="shakai11.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai12.html"><span class="label">②完成編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai13.html"><span class="label">③補足＋α</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai-review-5.html"><span class="label">整理ページ（最澄・空海、藤原氏系図など）</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第6回：武士の世の中</div>
+    <div class="items">
+      <a class="item" href="shakai14.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai15.html"><span class="label">②完成編</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai16.html"><span class="label">③補足＋α</span><span class="arrow">›</span></a>
+      <a class="item" href="shakai-review-6.html"><span class="label">整理ページ（藤原氏別枝、源平の流れなど）</span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第7回：外国から攻められた日本（元寇）</div>
+    <div class="items">
+      <a class="item" href="shakai17.html"><span class="label">①入門編（栄冠のみ）<span class="badge stage">ステージ制 56枚</span></span><span class="arrow">›</span></a>
+    </div>
+    <div class="group">第8回：立ち上がる農民たち</div>
+    <div class="items">
+      <a class="item" href="shakai18.html"><span class="label">①入門編（栄冠のみ）<span class="badge stage">ステージ制 65枚</span></span><span class="arrow">›</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>🛠 ツール</h2>
+    <div class="items">
+      <a class="item" href="study-log.html"><span class="label">学習カレンダー</span><span class="arrow">›</span></a>
+    </div>
+  </section>
+
+  <footer>結衣さん フラッシュカード／最終更新：2026-10-27</footer>
+</div>
+</body>
+</html>
