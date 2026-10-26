@@ -26,8 +26,87 @@
     font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
     overflow: hidden;
   }
-  .wrap {
+  /* ---- ステージ選択画面 ---- */
+  .stage-select {
+    display: none;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    padding: 4vh 6vw;
+    overflow-y: auto;
+  }
+  .stage-select.active { display: flex; }
+  .stage-select-header {
+    text-align: center;
+    margin-bottom: 3vh;
+  }
+  .stage-select-header h1 {
+    font-size: 4.6vw;
+    margin: 0 0 1vh;
+    color: var(--accent);
+  }
+  .stage-select-header .overall {
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .stage-select-header .allclear {
+    font-size: 2.6vw;
+    color: var(--answer);
+    font-weight: 800;
+    margin-top: 1vh;
+  }
+  .stage-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2vh 2vw;
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 2vh;
+  }
+  .stage-item {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1vh;
+    background: var(--card-bg);
+    border: 2px solid #2a3644;
+    border-radius: 16px;
+    padding: 2.2vh 2vw;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .stage-item:hover:not(.locked) { border-color: var(--accent); }
+  .stage-item.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .stage-item.cleared {
+    border-color: var(--answer);
+  }
+  .stage-num {
+    font-size: 1.5vw;
+    color: var(--sub);
+    letter-spacing: 0.2em;
+  }
+  .stage-label {
+    font-size: 2vw;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+  .stage-progress {
+    font-size: 1.7vw;
+    color: var(--accent);
+  }
+  .stage-item.cleared .stage-progress { color: var(--answer); }
+  .stage-select-footer {
+    margin-top: 2vh;
+    text-align: center;
+  }
+  /* ---- フラッシュカード画面 ---- */
+  .wrap {
+    display: none;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
@@ -35,6 +114,7 @@
     height: 100vh;
     padding: 3vh 5vw;
   }
+  .wrap.active { display: flex; }
   .topbar {
     width: 100%;
     display: flex;
@@ -114,9 +194,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 3vw;
+    gap: 2.4vw;
     font-size: 1.8vw;
     color: var(--sub);
+    flex-wrap: wrap;
   }
   button {
     background: #2a3644;
@@ -138,7 +219,19 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="stage-select active" id="stageSelect">
+  <div class="stage-select-header">
+    <h1>社会・第7回・①入門編（栄冠）</h1>
+    <div class="overall">✓ 全体でおぼえた数：<span id="overallCounter">0 / 56</span></div>
+    <div class="allclear" id="allClearMsg" style="display:none;">🎉🎉 全ステージ制覇！すごい！</div>
+  </div>
+  <div class="stage-list" id="stageList"></div>
+  <div class="stage-select-footer">
+    <button id="resetAllBtn">🔄 ぜんぶリセット</button>
+  </div>
+</div>
+
+<div class="wrap" id="wrap">
   <div class="topbar">
     <span class="category" id="category">社会・第7回・①入門編（栄冠）</span>
     <span id="counter">1 / 56</span>
@@ -153,11 +246,12 @@
   </div>
 
   <div class="bottombar">
+    <button id="backToStages">📚 ステージ選択</button>
     <button id="playPause">⏸ 停止</button>
     <button id="restart">🔀 シャッフル</button>
     <button id="restartOrder">📖 テキスト順</button>
     <button id="masterBtn">✓ 覚えた</button>
-    <button id="resetMastered">🔄 リセット</button>
+    <button id="resetMastered">🔄 このステージをリセット</button>
   </div>
 </div>
 
@@ -242,8 +336,48 @@ const ANSWER_SECONDS = 5;
 function currentPhaseSeconds() {
   return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
 }
+
 DATA.forEach((item, i) => { item._id = i; });
 const TOTAL_COUNT = DATA.length;
+
+// ---- ステージ分割（同じカテゴリの連続した問題を1ステージとし、STAGE_UNIT問を超える場合はさらに分割する）----
+const STAGE_UNIT = 10;
+function buildStages(data) {
+  const runs = [];
+  let i = 0;
+  while (i < data.length) {
+    let j = i;
+    while (j < data.length && data[j].cat === data[i].cat) j++;
+    runs.push({ cat: data[i].cat, start: i, end: j });
+    i = j;
+  }
+  const catCount = {};
+  const stages = [];
+  runs.forEach(run => {
+    catCount[run.cat] = (catCount[run.cat] || 0) + 1;
+    const occurrence = catCount[run.cat];
+    const total = run.end - run.start;
+    const numChunks = Math.ceil(total / STAGE_UNIT);
+    const chunkBase = Math.floor(total / numChunks);
+    const remainder = total % numChunks;
+    let pos = run.start;
+    for (let c = 0; c < numChunks; c++) {
+      const size = chunkBase + (c < remainder ? 1 : 0);
+      const ids = [];
+      for (let k = 0; k < size; k++) { ids.push(pos); pos++; }
+      let label = run.cat;
+      if (occurrence > 1) label += "（つづき" + (occurrence > 2 ? occurrence - 1 : "") + "）";
+      if (numChunks > 1) label += "　" + (c + 1) + "/" + numChunks;
+      stages.push({ label, ids });
+    }
+  });
+  stages.forEach((s, idx) => {
+    s.ids.forEach(id => { data[id]._stage = idx; });
+  });
+  return stages;
+}
+const STAGES = buildStages(DATA);
+
 let known = new Set();
 try {
   const saved = sessionStorage.getItem("shakai17_known");
@@ -252,15 +386,17 @@ try {
 function saveKnown() {
   try { sessionStorage.setItem("shakai17_known", JSON.stringify([...known])); } catch (e) {}
 }
+
+let currentStage = null;
 function activeData() {
-  return DATA.filter(item => !known.has(item._id));
+  return DATA.filter(item => item._stage === currentStage && !known.has(item._id));
 }
 let orderMode = "sequential"; // "shuffle" | "sequential"
 function makeDeck() {
   const pool = activeData();
   return orderMode === "sequential" ? pool.slice() : shuffle(pool);
 }
-let deck = makeDeck();
+let deck = [];
 let idx = 0;
 let showingAnswer = false;
 let paused = false;
@@ -268,6 +404,12 @@ let timer = null;
 let tickStart = 0;
 let remainingOnPause = QUESTION_SECONDS * 1000;
 let finished = false;
+
+const stageSelectEl = document.getElementById("stageSelect");
+const stageListEl = document.getElementById("stageList");
+const overallCounterEl = document.getElementById("overallCounter");
+const allClearMsgEl = document.getElementById("allClearMsg");
+const wrapEl = document.getElementById("wrap");
 
 const questionEl = document.getElementById("question");
 const answerBox = document.getElementById("answerBox");
@@ -282,9 +424,70 @@ const restartBtn = document.getElementById("restart");
 const restartOrderBtn = document.getElementById("restartOrder");
 const masterBtn = document.getElementById("masterBtn");
 const resetMasteredBtn = document.getElementById("resetMastered");
+const backToStagesBtn = document.getElementById("backToStages");
+const resetAllBtn = document.getElementById("resetAllBtn");
+
+function stageMasteredCount(i) {
+  return STAGES[i].ids.filter(id => known.has(id)).length;
+}
+function isStageUnlocked(i) {
+  if (i === 0) return true;
+  return stageMasteredCount(i - 1) === STAGES[i - 1].ids.length;
+}
+function renderStageList() {
+  stageListEl.innerHTML = "";
+  STAGES.forEach((stage, i) => {
+    const unlocked = isStageUnlocked(i);
+    const masteredN = stageMasteredCount(i);
+    const total = stage.ids.length;
+    const cleared = masteredN === total;
+    const btn = document.createElement("button");
+    btn.className = "stage-item" + (unlocked ? "" : " locked") + (cleared ? " cleared" : "");
+    btn.innerHTML =
+      "<span class=\"stage-num\">ステージ " + (i + 1) + "</span>" +
+      "<span class=\"stage-label\">" + stage.label + "</span>" +
+      "<span class=\"stage-progress\">" + (unlocked ? (cleared ? "✓ クリア！（" + total + "問）" : masteredN + " / " + total + " 問") : "🔒 ロック中（前のステージをクリアしよう）") + "</span>";
+    if (unlocked) {
+      btn.addEventListener("click", () => startStage(i));
+    } else {
+      btn.disabled = true;
+    }
+    stageListEl.appendChild(btn);
+  });
+  overallCounterEl.textContent = known.size + " / " + TOTAL_COUNT;
+  allClearMsgEl.style.display = known.size === TOTAL_COUNT ? "" : "none";
+}
+
+function showStageSelect() {
+  clearTimeout(timer);
+  wrapEl.classList.remove("active");
+  stageSelectEl.classList.add("active");
+  renderStageList();
+}
+
+function startStage(i) {
+  currentStage = i;
+  stageSelectEl.classList.remove("active");
+  wrapEl.classList.add("active");
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  renderCard();
+  resetProgressBar();
+  updateMasteredCounter();
+  if (!finished) {
+    startProgress();
+    scheduleNext();
+  }
+}
 
 function updateMasteredCounter() {
-  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+  if (currentStage === null) return;
+  const total = STAGES[currentStage].ids.length;
+  const n = stageMasteredCount(currentStage);
+  masteredCounterEl.textContent = "✓ このステージ " + n + " / " + total;
 }
 
 function resetProgressBar() {
@@ -297,13 +500,14 @@ function renderCard() {
   if (deck.length === 0) {
     finished = true;
     clearTimeout(timer);
-    categoryEl.textContent = "🎉 全問クリア";
-    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const stageTotal = STAGES[currentStage].ids.length;
+    categoryEl.textContent = "🎉 ステージクリア";
+    counterEl.textContent = stageTotal + " / " + stageTotal;
     const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
-    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    questionEl.innerHTML = "🎉 このステージ、全部「おぼえた」！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:60vw; max-height:34vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
     answerBox.classList.add("no-transition");
     answerBox.classList.add("show");
-    answerText.innerHTML = "";
+    answerText.innerHTML = "タップしてステージ選択にもどる";
     arrowLabel.style.display = "none";
     resetProgressBar();
     return;
@@ -433,7 +637,8 @@ masterBtn.addEventListener("click", () => {
 });
 
 resetMasteredBtn.addEventListener("click", () => {
-  known = new Set();
+  if (currentStage === null) return;
+  STAGES[currentStage].ids.forEach(id => known.delete(id));
   saveKnown();
   updateMasteredCounter();
   clearTimeout(timer);
@@ -447,16 +652,28 @@ resetMasteredBtn.addEventListener("click", () => {
   }
 });
 
+backToStagesBtn.addEventListener("click", () => {
+  showStageSelect();
+});
+
+resetAllBtn.addEventListener("click", () => {
+  if (!confirm("すべてのステージの「おぼえた」記録をリセットします。よろしいですか？")) return;
+  known = new Set();
+  saveKnown();
+  renderStageList();
+});
+
 document.querySelector(".card").addEventListener("click", () => {
+  if (finished) {
+    showStageSelect();
+    return;
+  }
   clearTimeout(timer);
   step();
   if (!paused) scheduleNext();
 });
 
-updateMasteredCounter();
-renderCard();
-startProgress();
-scheduleNext();
+renderStageList();
 </script>
 </body>
 </html>
