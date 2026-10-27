@@ -111,6 +111,43 @@
     color: var(--sub);
     font-size: 18px;
   }
+  .round-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  a.round-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--card-bg);
+    border: 1px solid #2a3644;
+    border-radius: 12px;
+    padding: 14px 14px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  a.round-item:active { background: #243041; }
+  a.round-item .round-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  a.round-item .round-theme {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  a.round-item .badge {
+    align-self: flex-start;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 3px 9px;
+  }
   footer {
     margin-top: 30px;
     text-align: center;
@@ -130,37 +167,41 @@
   </div>
 
   <section>
-    <div class="group">第1回：原始の人々のくらし</div>
-    <div class="items">
-      <a class="item" href="shakai1.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第2回：ムラからクニへ</div>
-    <div class="items">
-      <a class="item" href="shakai4.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第3回：大和政権と天皇中心の国づくり</div>
-    <div class="items">
-      <a class="item" href="shakai7.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第4回：律令国家・天平文化</div>
-    <div class="items">
-      <a class="item" href="shakai10.html"><span class="label">①入門編（栄冠のみ）</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第5回：天皇・貴族の政治</div>
-    <div class="items">
-      <a class="item" href="shakai11.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第6回：武士の世の中</div>
-    <div class="items">
-      <a class="item" href="shakai14.html"><span class="label">①入門編</span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第7回：外国から攻められた日本（元寇）</div>
-    <div class="items">
-      <a class="item" href="shakai17.html"><span class="label">①入門編（栄冠のみ）<span class="badge stage">ステージ制 56枚</span></span><span class="arrow">›</span></a>
-    </div>
-    <div class="group">第8回：立ち上がる農民たち</div>
-    <div class="items">
-      <a class="item" href="shakai18.html"><span class="label">①入門編（栄冠のみ）<span class="badge stage">ステージ制 65枚</span></span><span class="arrow">›</span></a>
+    <div class="round-grid">
+      <a class="round-item" href="shakai1.html">
+        <span class="round-num">第1回</span>
+        <span class="round-theme">原始の人々のくらし</span>
+      </a>
+      <a class="round-item" href="shakai4.html">
+        <span class="round-num">第2回</span>
+        <span class="round-theme">ムラからクニへ</span>
+      </a>
+      <a class="round-item" href="shakai7.html">
+        <span class="round-num">第3回</span>
+        <span class="round-theme">大和政権と天皇中心の国づくり</span>
+      </a>
+      <a class="round-item" href="shakai10.html">
+        <span class="round-num">第4回</span>
+        <span class="round-theme">律令国家・天平文化</span>
+      </a>
+      <a class="round-item" href="shakai11.html">
+        <span class="round-num">第5回</span>
+        <span class="round-theme">天皇・貴族の政治</span>
+      </a>
+      <a class="round-item" href="shakai14.html">
+        <span class="round-num">第6回</span>
+        <span class="round-theme">武士の世の中</span>
+      </a>
+      <a class="round-item" href="shakai17.html">
+        <span class="round-num">第7回</span>
+        <span class="round-theme">外国から攻められた日本（元寇）</span>
+        <span class="badge stage">ステージ制</span>
+      </a>
+      <a class="round-item" href="shakai18.html">
+        <span class="round-num">第8回</span>
+        <span class="round-theme">立ち上がる農民たち</span>
+        <span class="badge stage">ステージ制</span>
+      </a>
     </div>
   </section>
 
