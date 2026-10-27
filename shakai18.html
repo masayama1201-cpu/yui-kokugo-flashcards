@@ -261,7 +261,6 @@
   </div>
 
   <div class="bottombar">
-    <button id="backToStages">📚 選択</button>
     <button id="playPause">⏸</button>
     <button id="restart">🔀 シャッフル</button>
     <button id="restartOrder">📖 テキスト順</button>
@@ -447,7 +446,6 @@ const restartBtn = document.getElementById("restart");
 const restartOrderBtn = document.getElementById("restartOrder");
 const masterBtn = document.getElementById("masterBtn");
 const resetMasteredBtn = document.getElementById("resetMastered");
-const backToStagesBtn = document.getElementById("backToStages");
 const resetAllBtn = document.getElementById("resetAllBtn");
 
 function stageMasteredCount(i) {
@@ -675,10 +673,6 @@ resetMasteredBtn.addEventListener("click", () => {
     startProgress();
     scheduleNext();
   }
-});
-
-backToStagesBtn.addEventListener("click", () => {
-  showStageSelect();
 });
 
 resetAllBtn.addEventListener("click", () => {
