@@ -56,12 +56,13 @@
     margin-top: 1vh;
   }
   .stage-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1vh;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1vh 2vw;
     flex: 1;
     overflow-y: auto;
     padding-bottom: 2vh;
+    align-content: start;
   }
   .stage-item {
     display: flex;
