@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語（5年後期 第8回：和語・漢語・外来語／本科＋栄冠）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 3.6vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 92vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 2.5vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+  .answer-box rt {
+    font-size: 0.42em;
+    color: var(--sub);
+  }
+  .choice-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 1.6vh;
+    width: 100%;
+    align-items: center;
+  }
+  .choice-box {
+    font-size: 2.6vw;
+    font-weight: 700;
+    padding: 1.4vh 3vw;
+    border-radius: 14px;
+    border: 2px solid var(--sub);
+    background: var(--card-bg);
+    color: var(--text);
+    width: 82vw;
+    max-width: 560px;
+    opacity: 0.6;
+    transition: all 0.4s ease;
+    text-align: left;
+  }
+  .choice-box.hidden-choice { display: none; }
+  .choice-box.correct {
+    border-color: var(--answer);
+    background: rgba(126,214,165,0.18);
+    color: var(--answer);
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  .choice-box rt {
+    font-size: 0.42em;
+    color: var(--sub);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語・第8回・和語漢語外来語編</span>
+    <span id="counter">1 / 47</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 47</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
+    <div class="choice-wrap" id="choiceWrap">
+      <div class="choice-box" id="choiceBox0"></div>
+      <div class="choice-box" id="choiceBox1"></div>
+      <div class="choice-box" id="choiceBox2"></div>
+      <div class="choice-box" id="choiceBox3"></div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"慣用句・語句の意味（本科①）", q:"「気おされる」の意味は？", a:"相手の勢いに圧倒されること"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「すくむ」の意味は？", a:"恐怖などで体が縮んで動けなくなること"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「立つ瀬（が無い）」の意味は？", a:"自分の立場や面目"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「平生」の意味は？", a:"ふだん、いつも"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「手を焼く」の意味は？", a:"あつかいに困ること"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「いささか」の意味は？", a:"ほんの少し、わずか"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「かいがいしい」の意味は？", a:"きびきびと働く様子"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「あごで使う」の意味は？", a:"いばった態度で人を使うこと"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「物色する」の意味は？", a:"ふさわしいものをあれこれ探すこと"},
+  {cat:"慣用句・語句の意味（本科①）", q:"「おりがみをつける」の意味は？", a:"まちがいないと保証すること"},
+
+  {cat:"慣用句・語句の意味（本科②）", q:"「裏をかく」の意味は？", a:"相手の予想や計画の逆を行って出しぬくこと"},
+  {cat:"慣用句・語句の意味（本科②）", q:"「生き字引」の意味は？", a:"何でも知っている人"},
+  {cat:"慣用句・語句の意味（本科②）", q:"「やぶへび」の意味は？", a:"余計なことをしてめんどうなことになること"},
+  {cat:"慣用句・語句の意味（本科②）", q:"「そぞろ歩き」の意味は？", a:"特に目的もなく、ぶらぶら歩くこと"},
+  {cat:"慣用句・語句の意味（本科②）", q:"「とほうにくれる」の意味は？", a:"どうしたらいいかわからず困り果てること"},
+
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「央」と同じ意味を表す外来語は？", a:"センター"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「干」と同じ意味を表す外来語は？", a:"ドライ"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「管」と同じ意味を表す外来語は？", a:"パイプ"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「光」と同じ意味を表す外来語は？", a:"ライト"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「切」と同じ意味を表す外来語は？", a:"カット"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「題」と同じ意味を表す外来語は？", a:"タイトル"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「談」と同じ意味を表す外来語は？", a:"トーク"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「点」と同じ意味を表す外来語は？", a:"ポイント"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「転」と同じ意味を表す外来語は？", a:"ターン"},
+  {cat:"漢字と同じ意味の外来語（本科③）", q:"「堂」と同じ意味を表す外来語は？", a:"ホール"},
+
+  {cat:"文にあてはまる言葉（本科④）", q:"「あちこちから（　）意見が飛び交う。」空らんに入る言葉は？", a:"やつぎばやに（矢継ぎ早に）"},
+  {cat:"文にあてはまる言葉（本科④）", q:"「意外な結果に（　）おどろいている。」空らんに入る言葉は？", a:"すくなからず（少なからず）"},
+  {cat:"文にあてはまる言葉（本科④）", q:"「彼は（　）自分の恥を人前にさらす。」空らんに入る言葉は？", a:"おくめんもなく（臆面もなく）"},
+  {cat:"文にあてはまる言葉（本科④）", q:"「駅まで走り通して（　）発車時刻に間に合った。」空らんに入る言葉は？", a:"かろうじて"},
+  {cat:"文にあてはまる言葉（本科④）", q:"「足の速い彼は（　）リレーの選手に選ばれた。」空らんに入る言葉は？", a:"あんのじょう（案の定）"},
+
+  {cat:"外来語の意味（本科⑤）", q:"「マスコミ」の意味は？", a:"広く大衆に情報を伝えること"},
+  {cat:"外来語の意味（本科⑤）", q:"「ジャーナリスト」の意味は？", a:"言論・報道にたずさわる人"},
+  {cat:"外来語の意味（本科⑤）", q:"「アイランド」の意味は？", a:"島"},
+  {cat:"外来語の意味（本科⑤）", q:"「バイパス」の意味は？", a:"交通量の多い市街地をさけて通る道"},
+  {cat:"外来語の意味（本科⑤）", q:"「リラックス」の意味は？", a:"くつろぐこと"},
+  {cat:"外来語の意味（本科⑤）", q:"「ドライブ」の意味は？", a:"車を走らせること"},
+
+  {cat:"慣用句・語句の意味（栄冠）", q:"「しびれをきらす」の意味は？", a:"待ちくたびれること"},
+  {cat:"慣用句・語句の意味（栄冠）", q:"「気がおけない」の意味は？", a:"気楽につきあえること、遠慮がいらないこと"},
+  {cat:"慣用句・語句の意味（栄冠）", q:"「ひたむき」の意味は？", a:"一つのことに熱中するようす"},
+
+  {cat:"外来語の意味（栄冠）", q:"「カット」の意味は？", a:"切る"},
+  {cat:"外来語の意味（栄冠）", q:"「トーク」の意味は？", a:"会話"},
+  {cat:"外来語の意味（栄冠）", q:"「ポイント」の意味は？", a:"点"},
+  {cat:"外来語の意味（栄冠）", q:"「アクション」の意味は？", a:"動作・行動"},
+  {cat:"外来語の意味（栄冠）", q:"「メンバー」の意味は？", a:"会員"},
+  {cat:"外来語の意味（栄冠）", q:"「ダウン」の意味は？", a:"下げる・たおれる"},
+  {cat:"外来語の意味（栄冠）", q:"「テクノロジー」の意味は？", a:"科学技術"},
+  {cat:"外来語の意味（栄冠）", q:"「ギャップ」の意味は？", a:"へだたり・すき間"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const CELEBRATION_PHOTOS = ["images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration7.jpg", "images/celebration9.jpg", "images/celebration10.jpg", "images/celebration11.jpg", "images/celebration12.jpg", "images/celebration13.jpg", "images/celebration14.jpg", "images/celebration15.jpg", "images/celebration16.jpg", "images/celebration17.jpg", "images/celebration18.jpg", "images/celebration19.jpg", "images/celebration20.jpg", "images/celebration21.jpg", "images/celebration22.jpg"];
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("kokugo21_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("kokugo21_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "sequential"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+let finished = false;
+let currentMcOrder = null; // shuffled original-indices for the mc card currently on screen
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
+const choiceWrap = document.getElementById("choiceWrap");
+const choiceBoxes = [
+  document.getElementById("choiceBox0"),
+  document.getElementById("choiceBox1"),
+  document.getElementById("choiceBox2"),
+  document.getElementById("choiceBox3"),
+];
+const CHOICE_LABELS = ["ア", "イ", "ウ", "エ"];
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
+function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.textContent = "";
+    arrowLabel.style.display = "none";
+    choiceWrap.style.display = "none";
+    resetProgressBar();
+    return;
+  }
+  finished = false;
+  arrowLabel.style.display = "";
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.innerHTML = item.q;
+
+  if (item.type === "mc") {
+    answerBox.style.display = "none";
+    choiceWrap.style.display = "flex";
+    currentMcOrder = shuffle(item.choices.map((_, i) => i));
+    choiceBoxes.forEach((box, slot) => {
+      box.classList.remove("correct");
+      if (slot < currentMcOrder.length) {
+        const origIndex = currentMcOrder[slot];
+        box.classList.remove("hidden-choice");
+        box.innerHTML = CHOICE_LABELS[slot] + "．" + item.choices[origIndex];
+      } else {
+        box.classList.add("hidden-choice");
+        box.innerHTML = "";
+      }
+    });
+  } else {
+    answerBox.style.display = "";
+    choiceWrap.style.display = "none";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.remove("show");
+    void answerBox.offsetWidth;
+    answerText.innerHTML = item.a;
+    void answerBox.offsetWidth;
+    requestAnimationFrame(() => {
+      answerBox.classList.remove("no-transition");
+    });
+  }
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (finished) return;
+  if (!showingAnswer) {
+    const item = deck[idx];
+    if (item.type === "mc") {
+      const correctSlot = currentMcOrder.indexOf(item.correct);
+      choiceBoxes[correctSlot].classList.add("correct");
+    } else {
+      answerBox.classList.add("show");
+    }
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  resetProgressBar();
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+updateMasteredCounter();
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
