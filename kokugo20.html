@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<title>国語（5年後期 第7回：重箱読み・湯桶読み／本科＋栄冠）</title>
+<style>
+  :root {
+    --bg: #12181f;
+    --card-bg: #1c2733;
+    --accent: #ffb347;
+    --answer: #7ed6a5;
+    --text: #f5f7fa;
+    --sub: #9fb0c3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 3vh 5vw;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 2.2vw;
+    color: var(--sub);
+  }
+  .category {
+    background: rgba(255,179,71,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.6vh 2vw;
+    font-weight: bold;
+  }
+  .progress-wrap {
+    width: 100%;
+    height: 1.2vh;
+    background: #2a3644;
+    border-radius: 999px;
+    margin-top: 1.5vh;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .card {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4vh;
+  }
+  .qlabel {
+    font-size: 2vw;
+    letter-spacing: 0.3em;
+    color: var(--sub);
+  }
+  .question {
+    font-size: 3.6vw;
+    font-weight: 800;
+    line-height: 1.4;
+    max-width: 92vw;
+  }
+  .answer-box {
+    font-size: 3.6vw;
+    font-weight: 800;
+    color: var(--answer);
+    line-height: 1.4;
+    max-width: 90vw;
+    min-height: 6vw;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .answer-box.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .answer-box.no-transition {
+    transition: none !important;
+  }
+  .answer-box .arrow {
+    color: var(--sub);
+    font-size: 3vw;
+    margin-right: 0.4em;
+  }
+  .bottombar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    font-size: 1.8vw;
+    color: var(--sub);
+  }
+  button {
+    background: #2a3644;
+    color: var(--text);
+    border: none;
+    border-radius: 999px;
+    padding: 2.5vh 2.2vw;
+    font-size: 1.8vw;
+    cursor: pointer;
+  }
+  button:hover { background: #34445a; }
+  .hint {
+    color: var(--sub);
+    font-size: 1.6vw;
+  }
+  .answer-box rt {
+    font-size: 0.42em;
+    color: var(--sub);
+  }
+  .choice-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 1.6vh;
+    width: 100%;
+    align-items: center;
+  }
+  .choice-box {
+    font-size: 2.6vw;
+    font-weight: 700;
+    padding: 1.4vh 3vw;
+    border-radius: 14px;
+    border: 2px solid var(--sub);
+    background: var(--card-bg);
+    color: var(--text);
+    width: 82vw;
+    max-width: 560px;
+    opacity: 0.6;
+    transition: all 0.4s ease;
+    text-align: left;
+  }
+  .choice-box.hidden-choice { display: none; }
+  .choice-box.correct {
+    border-color: var(--answer);
+    background: rgba(126,214,165,0.18);
+    color: var(--answer);
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  .choice-box rt {
+    font-size: 0.42em;
+    color: var(--sub);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="category" id="category">国語・第7回・重箱読み湯桶読み編</span>
+    <span id="counter">1 / 90</span>
+    <span id="masteredCounter">✓ おぼえた 0 / 90</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="card">
+    <div class="qlabel">Q</div>
+    <div class="question" id="question">読み込み中…</div>
+    <div class="answer-box" id="answerBox"><span class="arrow" id="arrowLabel">A</span><span id="answerText"></span></div>
+    <div class="choice-wrap" id="choiceWrap">
+      <div class="choice-box" id="choiceBox0"></div>
+      <div class="choice-box" id="choiceBox1"></div>
+      <div class="choice-box" id="choiceBox2"></div>
+      <div class="choice-box" id="choiceBox3"></div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <button id="playPause">⏸ 停止</button>
+    <button id="restart">🔀 シャッフル</button>
+    <button id="restartOrder">📖 テキスト順</button>
+    <button id="masterBtn">✓ 覚えた</button>
+    <button id="resetMastered">🔄 リセット</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {cat:"同じ漢字で読み方がちがうもの（本科）", type:"mc", q:"次の4つの熟語のうち、「家」の読み方が他とちがうものはどれ？", choices:["<ruby>本家<rt>ほんけ</rt></ruby>","<ruby>分家<rt>ぶんけ</rt></ruby>","<ruby>家来<rt>けらい</rt></ruby>","<ruby>家屋<rt>かおく</rt></ruby>"], correct:3},
+  {cat:"同じ漢字で読み方がちがうもの（本科）", type:"mc", q:"次の4つの熟語のうち、「名」の読み方が他とちがうものはどれ？", choices:["<ruby>有名<rt>ゆうめい</rt></ruby>","<ruby>名声<rt>めいせい</rt></ruby>","<ruby>名字<rt>みょうじ</rt></ruby>","<ruby>氏名<rt>しめい</rt></ruby>"], correct:2},
+  {cat:"同じ漢字で読み方がちがうもの（本科）", type:"mc", q:"次の4つの熟語のうち、「世」の読み方が他とちがうものはどれ？", choices:["<ruby>世紀<rt>せいき</rt></ruby>","<ruby>世間<rt>せけん</rt></ruby>","<ruby>時世<rt>じせい</rt></ruby>","<ruby>処世<rt>しょせい</rt></ruby>"], correct:1},
+  {cat:"同じ漢字で読み方がちがうもの（本科）", type:"mc", q:"次の4つの熟語のうち、「明」の読み方が他とちがうものはどれ？", choices:["<ruby>灯明<rt>とうみょう</rt></ruby>","<ruby>明示<rt>めいじ</rt></ruby>","<ruby>明白<rt>めいはく</rt></ruby>","<ruby>平明<rt>へいめい</rt></ruby>"], correct:0},
+  {cat:"同じ漢字で読み方がちがうもの（本科）", type:"mc", q:"次の4つの熟語のうち、「体」の読み方が他とちがうものはどれ？", choices:["<ruby>形体<rt>けいたい</rt></ruby>","<ruby>主体<rt>しゅたい</rt></ruby>","<ruby>体格<rt>たいかく</rt></ruby>","<ruby>体裁<rt>ていさい</rt></ruby>"], correct:3},
+
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「野宿」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>野宿<rt>のじゅく</rt></ruby>＝野（の・訓）＋宿（じゅく・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「客間」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>客間<rt>きゃくま</rt></ruby>＝客（きゃく・音）＋間（ま・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「記者」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>記者<rt>きしゃ</rt></ruby>＝記（き・音）＋者（しゃ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「青空」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>青空<rt>あおぞら</rt></ruby>＝青（あお・訓）＋空（そら・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「身分」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>身分<rt>みぶん</rt></ruby>＝身（み・訓）＋分（ぶん・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「家事」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>家事<rt>かじ</rt></ruby>＝家（か・音）＋事（じ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「役場」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>役場<rt>やくば</rt></ruby>＝役（やく・音）＋場（ば・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「仕事」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>仕事<rt>しごと</rt></ruby>＝仕（し・音）＋事（ごと・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「合図」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>合図<rt>あいず</rt></ruby>＝合（あい・訓）＋図（ず・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「手本」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>手本<rt>てほん</rt></ruby>＝手（て・訓）＋本（ほん・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「自腹」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>自腹<rt>じばら</rt></ruby>＝自（じ・音）＋腹（ばら・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「雨具」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>雨具<rt>あまぐ</rt></ruby>＝雨（あま・訓）＋具（ぐ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「湯気」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>湯気<rt>ゆげ</rt></ruby>＝湯（ゆ・訓）＋気（げ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「新型」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>新型<rt>しんがた</rt></ruby>＝新（しん・音）＋型（がた・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「庭木」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>庭木<rt>にわき</rt></ruby>＝庭（にわ・訓）＋木（き・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「投手」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>投手<rt>とうしゅ</rt></ruby>＝投（とう・音）＋手（しゅ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「登山」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>登山<rt>とざん</rt></ruby>＝登（と・音）＋山（ざん・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「株主」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>株主<rt>かぶぬし</rt></ruby>＝株（かぶ・訓）＋主（ぬし・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「野原」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>野原<rt>のはら</rt></ruby>＝野（の・訓）＋原（はら・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「組曲」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>組曲<rt>くみきょく</rt></ruby>＝組（くみ・訓）＋曲（きょく・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「試合」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>試合<rt>しあい</rt></ruby>＝試（し・音）＋合（あい・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「物置」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>物置<rt>ものおき</rt></ruby>＝物（もの・訓）＋置（おき・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「絵画」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>絵画<rt>かいが</rt></ruby>＝絵（かい・音）＋画（が・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「関所」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>関所<rt>せきしょ</rt></ruby>＝関（せき・訓）＋所（しょ・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「両手」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>両手<rt>りょうて</rt></ruby>＝両（りょう・音）＋手（て・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「素人」の読み方は、ア〜エのどの組み合わせにもあてはまりません。正しい読み方は？", a:"<ruby>素人<rt>しろうと</rt></ruby><span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\">特別な読み方（4つの分類にあてはまらない）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「台所」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>台所<rt>だいどころ</rt></ruby>＝台（だい・音）＋所（どころ・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「安心」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>安心<rt>あんしん</rt></ruby>＝安（あん・音）＋心（しん・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「王様」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ウ（音訓読み＝重箱読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>王様<rt>おうさま</rt></ruby>＝王（おう・音）＋様（さま・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「着陸」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>着陸<rt>ちゃくりく</rt></ruby>＝着（ちゃく・音）＋陸（りく・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「変化」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>変化<rt>へんか</rt></ruby>＝変（へん・音）＋化（か・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「味方」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"イ（訓訓読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>味方<rt>みかた</rt></ruby>＝味（み・訓）＋方（かた・訓）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「見本」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"エ（訓音読み＝湯桶読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>見本<rt>みほん</rt></ruby>＝見（み・訓）＋本（ほん・音）</span>"},
+  {cat:"読み方の組み合わせ（音音・訓訓・重箱・湯桶）", q:"「向上」の読み方の組み合わせは？<br><span style=\"font-size:0.55em;\">ア　音音読み　イ　訓訓読み　ウ　音訓読み（重箱読み）　エ　訓音読み（湯桶読み）</span>", a:"ア（音音読み）<span style=\"display:block;font-size:0.5em;color:var(--sub);margin-top:1vh;\"><ruby>向上<rt>こうじょう</rt></ruby>＝向（こう・音）＋上（じょう・音）</span>"},
+
+  {cat:"音読みと訓読み（栄冠）", q:"「幹」の音読みと訓読みは？", a:"音読み：カン／訓読み：みき"},
+  {cat:"音読みと訓読み（栄冠）", q:"「参」の音読みと訓読みは？", a:"音読み：サン／訓読み：まいる"},
+  {cat:"音読みと訓読み（栄冠）", q:"「鏡」の音読みと訓読みは？", a:"音読み：キョウ／訓読み：かがみ"},
+  {cat:"音読みと訓読み（栄冠）", q:"「導」の音読みと訓読みは？", a:"音読み：ドウ／訓読み：みちびく"},
+  {cat:"音読みと訓読み（栄冠）", q:"「独」の音読みと訓読みは？", a:"音読み：ドク／訓読み：ひとり"},
+
+  {cat:"2つの音読み（栄冠）", q:"「力」には音読みが2つあります。それぞれカタカナで答え、使った熟語も1つずつ答えよう。", a:"リキ（例：力学）／リョク（例：体力）"},
+  {cat:"2つの音読み（栄冠）", q:"「子」には音読みが2つあります。それぞれカタカナで答え、使った熟語も1つずつ答えよう。", a:"シ（例：子女）／ス（例：様子）"},
+  {cat:"2つの音読み（栄冠）", q:"「作」には音読みが2つあります。それぞれカタカナで答え、使った熟語も1つずつ答えよう。", a:"サク（例：作物）／サ（例：動作）"},
+  {cat:"2つの音読み（栄冠）", q:"「家」には音読みが2つあります。それぞれカタカナで答え、使った熟語も1つずつ答えよう。", a:"カ（例：家屋）／ケ（例：家来）"},
+  {cat:"2つの音読み（栄冠）", q:"「楽」には音読みが2つあります。それぞれカタカナで答え、使った熟語も1つずつ答えよう。", a:"ガク（例：楽団）／ラク（例：行楽）"},
+
+  {cat:"特別な読み方をする熟語", q:"「小豆」の読み方は？", a:"<ruby>小豆<rt>あずき</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「海女」の読み方は？", a:"<ruby>海女<rt>あま</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「意気地」の読み方は？", a:"<ruby>意気地<rt>いくじ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「田舎」の読み方は？", a:"<ruby>田舎<rt>いなか</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「息吹」の読み方は？", a:"<ruby>息吹<rt>いぶき</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「海原」の読み方は？", a:"<ruby>海原<rt>うなばら</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「乳母」の読み方は？", a:"<ruby>乳母<rt>うば</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「回向」の読み方は？", a:"<ruby>回向<rt>えこう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「会得」の読み方は？", a:"<ruby>会得<rt>えとく</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「乙女」の読み方は？", a:"<ruby>乙女<rt>おとめ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「久遠」の読み方は？", a:"<ruby>久遠<rt>くおん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「句読点」の読み方は？", a:"<ruby>句読点<rt>くとうてん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「功徳」の読み方は？", a:"<ruby>功徳<rt>くどく</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「供物」の読み方は？", a:"<ruby>供物<rt>くもつ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「境内」の読み方は？", a:"<ruby>境内<rt>けいだい</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「化身」の読み方は？", a:"<ruby>化身<rt>けしん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「仮病」の読み方は？", a:"<ruby>仮病<rt>けびょう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「黒白」の読み方は？", a:"<ruby>黒白<rt>こくびゃく</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「心地」の読み方は？", a:"<ruby>心地<rt>ここち</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「権化」の読み方は？", a:"<ruby>権化<rt>ごんげ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「建立」の読み方は？", a:"<ruby>建立<rt>こんりゅう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「早速」の読み方は？", a:"<ruby>早速<rt>さっそく</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「五月雨」の読み方は？", a:"<ruby>五月雨<rt>さみだれ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「再来年」の読み方は？", a:"<ruby>再来年<rt>さらいねん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「時雨」の読み方は？", a:"<ruby>時雨<rt>しぐれ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「赤銅」の読み方は？", a:"<ruby>赤銅<rt>しゃくどう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「成就」の読み方は？", a:"<ruby>成就<rt>じょうじゅ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「精進」の読み方は？", a:"<ruby>精進<rt>しょうじん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「師走」の読み方は？", a:"<ruby>師走<rt>しわす</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「出納」の読み方は？", a:"<ruby>出納<rt>すいとう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「荘厳」の読み方は？", a:"<ruby>荘厳<rt>そうごん</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「相殺」の読み方は？", a:"<ruby>相殺<rt>そうさい</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「足袋」の読み方は？", a:"<ruby>足袋<rt>たび</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「読経」の読み方は？", a:"<ruby>読経<rt>どきょう</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「名残」の読み方は？", a:"<ruby>名残<rt>なごり</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「日和」の読み方は？", a:"<ruby>日和<rt>ひより</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「風情」の読み方は？", a:"<ruby>風情<rt>ふぜい</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「目深」の読み方は？", a:"<ruby>目深<rt>まぶか</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「土産」の読み方は？", a:"<ruby>土産<rt>みやげ</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「遊説」の読み方は？", a:"<ruby>遊説<rt>ゆうぜい</rt></ruby>"},
+  {cat:"特別な読み方をする熟語", q:"「玄人」の読み方は？（「素人」の反対の意味です）", a:"<ruby>玄人<rt>くろうと</rt></ruby>"},
+];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const CELEBRATION_PHOTOS = ["images/shakai10-complete.jpg", "images/celebration3.jpg", "images/celebration4.jpg", "images/celebration5.jpg", "images/celebration7.jpg", "images/celebration9.jpg", "images/celebration10.jpg", "images/celebration11.jpg", "images/celebration12.jpg", "images/celebration13.jpg", "images/celebration14.jpg", "images/celebration15.jpg", "images/celebration16.jpg", "images/celebration17.jpg", "images/celebration18.jpg", "images/celebration19.jpg", "images/celebration20.jpg", "images/celebration21.jpg", "images/celebration22.jpg"];
+const QUESTION_SECONDS = 7;
+const ANSWER_SECONDS = 5;
+function currentPhaseSeconds() {
+  return showingAnswer ? ANSWER_SECONDS : QUESTION_SECONDS;
+}
+DATA.forEach((item, i) => { item._id = i; });
+const TOTAL_COUNT = DATA.length;
+let known = new Set();
+try {
+  const saved = sessionStorage.getItem("kokugo20_known");
+  if (saved) known = new Set(JSON.parse(saved));
+} catch (e) {}
+function saveKnown() {
+  try { sessionStorage.setItem("kokugo20_known", JSON.stringify([...known])); } catch (e) {}
+}
+function activeData() {
+  return DATA.filter(item => !known.has(item._id));
+}
+let orderMode = "sequential"; // "shuffle" | "sequential"
+function makeDeck() {
+  const pool = activeData();
+  return orderMode === "sequential" ? pool.slice() : shuffle(pool);
+}
+let deck = makeDeck();
+let idx = 0;
+let showingAnswer = false;
+let paused = false;
+let timer = null;
+let tickStart = 0;
+let remainingOnPause = QUESTION_SECONDS * 1000;
+let finished = false;
+let currentMcOrder = null; // shuffled original-indices for the mc card currently on screen
+
+const questionEl = document.getElementById("question");
+const answerBox = document.getElementById("answerBox");
+const answerText = document.getElementById("answerText");
+const arrowLabel = document.getElementById("arrowLabel");
+const choiceWrap = document.getElementById("choiceWrap");
+const choiceBoxes = [
+  document.getElementById("choiceBox0"),
+  document.getElementById("choiceBox1"),
+  document.getElementById("choiceBox2"),
+  document.getElementById("choiceBox3"),
+];
+const CHOICE_LABELS = ["ア", "イ", "ウ", "エ"];
+const categoryEl = document.getElementById("category");
+const counterEl = document.getElementById("counter");
+const masteredCounterEl = document.getElementById("masteredCounter");
+const progressBar = document.getElementById("progressBar");
+const playPauseBtn = document.getElementById("playPause");
+const restartBtn = document.getElementById("restart");
+const restartOrderBtn = document.getElementById("restartOrder");
+const masterBtn = document.getElementById("masterBtn");
+const resetMasteredBtn = document.getElementById("resetMastered");
+
+function updateMasteredCounter() {
+  masteredCounterEl.textContent = "✓ おぼえた " + known.size + " / " + TOTAL_COUNT;
+}
+
+function renderCard() {
+  if (deck.length === 0) {
+    finished = true;
+    clearTimeout(timer);
+    categoryEl.textContent = "🎉 全問クリア";
+    counterEl.textContent = TOTAL_COUNT + " / " + TOTAL_COUNT;
+    const celebPhoto = CELEBRATION_PHOTOS[Math.floor(Math.random() * CELEBRATION_PHOTOS.length)];
+    questionEl.innerHTML = "🎉 全問「おぼえた」にしました！<br><img src=\"" + celebPhoto + "\" alt=\"おめでとう\" style=\"max-width:70vw; max-height:38vh; border-radius:20px; margin-top:2vh; box-shadow:0 4px 20px rgba(0,0,0,0.4);\">";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.add("show");
+    answerText.textContent = "";
+    arrowLabel.style.display = "none";
+    choiceWrap.style.display = "none";
+    resetProgressBar();
+    return;
+  }
+  finished = false;
+  arrowLabel.style.display = "";
+  const item = deck[idx];
+  categoryEl.textContent = item.cat;
+  counterEl.textContent = (idx + 1) + " / " + deck.length;
+  questionEl.innerHTML = item.q;
+
+  if (item.type === "mc") {
+    answerBox.style.display = "none";
+    choiceWrap.style.display = "flex";
+    currentMcOrder = shuffle(item.choices.map((_, i) => i));
+    choiceBoxes.forEach((box, slot) => {
+      box.classList.remove("correct");
+      if (slot < currentMcOrder.length) {
+        const origIndex = currentMcOrder[slot];
+        box.classList.remove("hidden-choice");
+        box.innerHTML = CHOICE_LABELS[slot] + "．" + item.choices[origIndex];
+      } else {
+        box.classList.add("hidden-choice");
+        box.innerHTML = "";
+      }
+    });
+  } else {
+    answerBox.style.display = "";
+    choiceWrap.style.display = "none";
+    answerBox.classList.add("no-transition");
+    answerBox.classList.remove("show");
+    void answerBox.offsetWidth;
+    answerText.innerHTML = item.a;
+    void answerBox.offsetWidth;
+    requestAnimationFrame(() => {
+      answerBox.classList.remove("no-transition");
+    });
+  }
+
+  showingAnswer = false;
+}
+
+function step() {
+  if (finished) return;
+  if (!showingAnswer) {
+    const item = deck[idx];
+    if (item.type === "mc") {
+      const correctSlot = currentMcOrder.indexOf(item.correct);
+      choiceBoxes[correctSlot].classList.add("correct");
+    } else {
+      answerBox.classList.add("show");
+    }
+    showingAnswer = true;
+  } else {
+    idx++;
+    if (idx >= deck.length) {
+      idx = 0;
+      deck = makeDeck();
+    }
+    renderCard();
+  }
+  startProgress();
+}
+
+function resetProgressBar() {
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
+  void progressBar.offsetWidth; // force reflow so the reset is committed before re-enabling the transition
+}
+
+function startProgress() {
+  const seconds = currentPhaseSeconds();
+  resetProgressBar();
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + seconds + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+function scheduleNext() {
+  clearTimeout(timer);
+  const seconds = currentPhaseSeconds();
+  tickStart = Date.now();
+  remainingOnPause = seconds * 1000;
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, seconds * 1000);
+}
+
+function pause() {
+  paused = true;
+  clearTimeout(timer);
+  const elapsed = Date.now() - tickStart;
+  remainingOnPause = Math.max(currentPhaseSeconds() * 1000 - elapsed, 0);
+  progressBar.style.transition = "none";
+  playPauseBtn.textContent = "▶ 再生";
+}
+
+function resume() {
+  paused = false;
+  playPauseBtn.textContent = "⏸ 停止";
+  tickStart = Date.now();
+  timer = setTimeout(() => {
+    step();
+    if (!paused) scheduleNext();
+  }, remainingOnPause);
+  const remainSec = remainingOnPause / 1000;
+  requestAnimationFrame(() => {
+    progressBar.style.transition = "width " + remainSec + "s linear";
+    progressBar.style.width = "100%";
+  });
+}
+
+playPauseBtn.addEventListener("click", () => {
+  if (paused) resume(); else pause();
+});
+
+restartBtn.addEventListener("click", () => {
+  orderMode = "shuffle";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+restartOrderBtn.addEventListener("click", () => {
+  orderMode = "sequential";
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+masterBtn.addEventListener("click", () => {
+  if (finished || deck.length === 0) return;
+  clearTimeout(timer);
+  const item = deck[idx];
+  known.add(item._id);
+  saveKnown();
+  updateMasteredCounter();
+  deck.splice(idx, 1);
+  if (idx >= deck.length) idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+resetMasteredBtn.addEventListener("click", () => {
+  known = new Set();
+  saveKnown();
+  updateMasteredCounter();
+  clearTimeout(timer);
+  deck = makeDeck();
+  idx = 0;
+  renderCard();
+  resetProgressBar();
+  if (!paused && !finished) {
+    startProgress();
+    scheduleNext();
+  }
+});
+
+document.querySelector(".card").addEventListener("click", () => {
+  clearTimeout(timer);
+  step();
+  if (!paused) scheduleNext();
+});
+
+updateMasteredCounter();
+renderCard();
+startProgress();
+scheduleNext();
+</script>
+</body>
+</html>
