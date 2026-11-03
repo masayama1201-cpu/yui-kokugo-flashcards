@@ -288,7 +288,7 @@ function renderCalendar() {
       let cls = "undone-future";
       if (it.done) cls = "done";
       else if (dateStr <= today) cls = "undone-overdue" + (isReview ? " review" : "");
-      const reviewPrefix = it.testKind === "模試" ? "模試見直し" : it.testKind === "思考力" ? "思考力見直し" : "テスト直し";
+      const reviewPrefix = it.testKind === "模試" ? "模試見直し" : it.testKind === "思考力" ? "思考力直し" : "テスト直し";
       const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + (it.done ? " ✓" : "");
       html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
     }
