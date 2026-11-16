@@ -271,11 +271,11 @@ function renderSummary() {
 
   const todayCard =
     '<div class="scard todaycard"><div class="n">' + t.total + '</div><div class="l">今日の消化（合計）</div></div>';
-  document.getElementById("summary").innerHTML = todayCard + cards.map((c) =>
+  document.getElementById("summary").innerHTML = cards.map((c) =>
     '<div class="scard ' + (c.n === 0 ? "zero" : "some " + (c.cls || "")) + '">' +
     '<div class="n">' + c.n + '</div><div class="l">' + c.label + "</div>" +
     '<div class="tdone' + (c.today ? "" : " none") + '">今日 ' + (c.today ? "✓" + c.today : "0") + "</div></div>"
-  ).join("");
+  ).join("") + todayCard;
 }
 
 // 「その日に完了にした数」を種類別に数える（doneAt＝チェックを付けた日。2026-11-16の改修以降の分のみ記録あり）
