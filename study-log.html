@@ -75,6 +75,22 @@
   .scard.some .n { color: #b45309; }
   .scard.some.hw .n { color: #c2410c; }
   .scard.some.review .n { color: #6d28d9; }
+  .scard .tdone { font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 4px; }
+  .scard .tdone.none { color: #cbd5e1; }
+  .scard.todaycard { background: #f0fdf4; border-color: #86efac; }
+  .scard.todaycard .n { color: #15803d; }
+
+  #progress { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 10px 10px; }
+  .bars { display: flex; align-items: flex-end; gap: 6px; height: 170px; }
+  .bcol { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
+  .bnum { font-size: 14px; font-weight: 800; color: #334155; height: 20px; }
+  .bstack { flex: 1; width: 70%; max-width: 46px; display: flex; flex-direction: column-reverse; gap: 2px; }
+  .bseg { width: 100%; border-radius: 4px; min-height: 3px; }
+  .blab { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px; line-height: 1.3; }
+  .bcol.today .blab, .bcol.today .bnum { color: #1e293b; font-weight: 800; }
+  .blegend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #475569; margin-top: 10px; justify-content: center; }
+  .blegend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .bnote { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 6px; }
 
   footer { text-align: center; color: #cbd5e1; font-size: 12px; margin-top: 30px; }
 
@@ -107,12 +123,15 @@
   <h2 id="summaryHeading">現時点のやり残し</h2>
   <div class="summary" id="summary"></div>
 
+  <h2>直近1週間の消化数</h2>
+  <div id="progress"></div>
+
   <footer id="pageFooter">学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, getDocs,
+  getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, getDocs, deleteField,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -187,11 +206,13 @@ async function toggleDaily(dateStr, cat, isDoneNow) {
       await deleteDoc(doc(db, student.logsCol, id));
       logItems = logItems.filter((it) => !(it.date === dateStr && it.category === cat.name));
     } else {
-      await setDoc(doc(db, student.logsCol, id), { date: dateStr, category: cat.name });
-      logItems.push({ date: dateStr, category: cat.name });
+      const doneAt = todayStr();
+      await setDoc(doc(db, student.logsCol, id), { date: dateStr, category: cat.name, doneAt, doneAtTs: new Date().toISOString() });
+      logItems.push({ date: dateStr, category: cat.name, doneAt });
     }
     renderCalendar();
     renderSummary();
+    renderProgress();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
@@ -199,10 +220,20 @@ async function toggleDaily(dateStr, cat, isDoneNow) {
 
 async function toggleHomework(item) {
   try {
-    await updateDoc(doc(db, student.hwCol, item.id), { done: !item.done });
-    item.done = !item.done;
+    // 完了にするときは完了日を記録、未完了に戻すときは完了日を消す（「その日の消化数」の集計用）
+    if (!item.done) {
+      const doneAt = todayStr();
+      await updateDoc(doc(db, student.hwCol, item.id), { done: true, doneAt, doneAtTs: new Date().toISOString() });
+      item.done = true;
+      item.doneAt = doneAt;
+    } else {
+      await updateDoc(doc(db, student.hwCol, item.id), { done: false, doneAt: deleteField(), doneAtTs: deleteField() });
+      item.done = false;
+      delete item.doneAt;
+    }
     renderCalendar();
     renderSummary();
+    renderProgress();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
@@ -231,16 +262,70 @@ function renderSummary() {
   const hwCount = hwItems.filter((it) => it.type !== "見直し" && !it.done && (it.lessonDate || "") <= today).length;
   const reviewCount = hwItems.filter((it) => it.type === "見直し" && !it.done && (it.lessonDate || "") <= today).length;
 
+  const t = countDoneOn(today);
   const cards = [
-    ...dailyCounts,
-    { label: "宿題", n: hwCount, cls: "hw" },
-    { label: "テスト直し", n: reviewCount, cls: "review" },
+    ...dailyCounts.map((c) => ({ ...c, today: t[c.label] })),
+    { label: "宿題", n: hwCount, cls: "hw", today: t["宿題"] },
+    { label: "テスト直し", n: reviewCount, cls: "review", today: t["テスト直し"] },
   ];
 
-  document.getElementById("summary").innerHTML = cards.map((c) =>
+  const todayCard =
+    '<div class="scard todaycard"><div class="n">' + t.total + '</div><div class="l">今日の消化（合計）</div></div>';
+  document.getElementById("summary").innerHTML = todayCard + cards.map((c) =>
     '<div class="scard ' + (c.n === 0 ? "zero" : "some " + (c.cls || "")) + '">' +
-    '<div class="n">' + c.n + '</div><div class="l">' + c.label + "</div></div>"
+    '<div class="n">' + c.n + '</div><div class="l">' + c.label + "</div>" +
+    '<div class="tdone' + (c.today ? "" : " none") + '">今日 ' + (c.today ? "✓" + c.today : "0") + "</div></div>"
   ).join("");
+}
+
+// 「その日に完了にした数」を種類別に数える（doneAt＝チェックを付けた日。2026-11-16の改修以降の分のみ記録あり）
+function countDoneOn(dateStr) {
+  const r = { "計算": 0, "社会の基礎": 0, "理科の基礎": 0, "宿題": 0, "テスト直し": 0, total: 0 };
+  for (const it of logItems) {
+    if (it.doneAt === dateStr && it.category in r) { r[it.category]++; r.total++; }
+  }
+  for (const it of hwItems) {
+    if (it.done && it.doneAt === dateStr) { r[it.type === "見直し" ? "テスト直し" : "宿題"]++; r.total++; }
+  }
+  return r;
+}
+
+const PROGRESS_START_DATE = "2026-11-16"; // 完了日の記録を始めた日。これより前は集計できない
+const PROGRESS_PARTS = [
+  { keys: ["計算", "社会の基礎", "理科の基礎"], label: "日々の課題", color: "#f59e0b" },
+  { keys: ["宿題"], label: "宿題", color: "#ea580c" },
+  { keys: ["テスト直し"], label: "テスト直し", color: "#7c3aed" },
+];
+
+function renderProgress() {
+  const today = todayStr();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today + "T00:00:00");
+    d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    days.push({ ds, d, c: countDoneOn(ds) });
+  }
+  const max = Math.max(1, ...days.map((x) => x.c.total));
+  let html = '<div class="bars">';
+  for (const x of days) {
+    const before = x.ds < PROGRESS_START_DATE;
+    html += '<div class="bcol' + (x.ds === today ? " today" : "") + '">';
+    html += '<div class="bnum">' + (before ? "–" : x.c.total) + "</div>";
+    html += '<div class="bstack">';
+    for (const p of PROGRESS_PARTS) {
+      const v = p.keys.reduce((s, k) => s + x.c[k], 0);
+      if (v) html += '<div class="bseg" style="height:' + (v / max * 100) + "%;background:" + p.color + '"></div>';
+    }
+    html += "</div>";
+    html += '<div class="blab">' + (x.d.getMonth() + 1) + "/" + x.d.getDate() + "<br>(" + DOW[x.d.getDay()] + ")</div>";
+    html += "</div>";
+  }
+  html += "</div>";
+  html += '<div class="blegend">' + PROGRESS_PARTS.map((p) =>
+    '<span><span class="sw" style="background:' + p.color + '"></span>' + p.label + "</span>").join("") + "</div>";
+  html += '<div class="bnote">チェックを付けた日で数えています（11/16から記録開始。それより前に完了した分は含みません）</div>';
+  document.getElementById("progress").innerHTML = html;
 }
 
 function renderCalendar() {
@@ -344,6 +429,7 @@ async function init() {
   }
   renderCalendar();
   renderSummary();
+  renderProgress();
   updateNavButtons();
 }
 init();
