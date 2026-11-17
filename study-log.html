@@ -52,6 +52,8 @@
   .dot.done { background: #dcfce7; color: #166534; }
   .dot.bad { background: #fef3c7; color: #b45309; }
   .dot.future { background: #f1f5f9; color: #cbd5e1; cursor: default; }
+  .dot.skipped, .chip.skipped { background: #e2e8f0; color: #64748b; }
+  .dot, .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 
   .chip {
     font-size: 13px; font-weight: 700; border-radius: 6px; padding: 3px 5px;
@@ -111,12 +113,13 @@
 </head>
 <body>
   <h1 id="pageTitle">学習カレンダー</h1>
-  <p class="sub">日々の課題（計・社・理）、授業の宿題、テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。</p>
+  <p class="sub">日々の課題（計・社・理）、授業の宿題、テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。長押しで「やったことにする（－）」になり、やり残しからは消えますが消化数には数えません。</p>
   <div class="legend">
     <span><span class="sw" style="background:#dcfce7"></span>済</span>
     <span><span class="sw" style="background:#fef3c7"></span>未（日々の課題）</span>
     <span><span class="sw" style="background:#fff7ed"></span>未（宿題）</span>
     <span><span class="sw" style="background:#ede9fe"></span>未（見直し）</span>
+    <span><span class="sw" style="background:#e2e8f0"></span>やったことにした（長押し）</span>
     <span><span class="sw" style="background:#f1f5f9"></span>まだ先</span>
   </div>
   <div id="errBox"></div>
@@ -207,44 +210,78 @@ async function readHomework() {
   return arr;
 }
 
-async function toggleDaily(dateStr, cat, isDoneNow) {
+// 状態は3つ："none"（未）／"done"（やった＝消化数に数える）／"skip"（やったことにする＝やり残しからは消すが消化数には数えない）
+// タップ：未→done、done/skip→未。長押し：skip⇔未（doneを長押しするとskipに変わる）
+function rerenderAll() {
+  renderCalendar();
+  renderSummary();
+  renderProgress();
+}
+
+async function setDailyState(dateStr, cat, state) {
   const id = dateStr.replace(/-/g, "") + "-" + cat.code;
   try {
-    if (isDoneNow) {
+    logItems = logItems.filter((it) => !(it.date === dateStr && it.category === cat.name));
+    if (state === "none") {
       await deleteDoc(doc(db, student.logsCol, id));
-      logItems = logItems.filter((it) => !(it.date === dateStr && it.category === cat.name));
     } else {
       const doneAt = todayStr();
-      await setDoc(doc(db, student.logsCol, id), { date: dateStr, category: cat.name, doneAt, doneAtTs: new Date().toISOString() });
-      logItems.push({ date: dateStr, category: cat.name, doneAt });
+      const rec = { date: dateStr, category: cat.name, doneAt, doneAtTs: new Date().toISOString(), skipped: state === "skip" };
+      await setDoc(doc(db, student.logsCol, id), rec);
+      logItems.push(rec);
     }
-    renderCalendar();
-    renderSummary();
-    renderProgress();
+    rerenderAll();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
 }
 
-async function toggleHomework(item) {
+async function setHomeworkState(item, state) {
   try {
-    // 完了にするときは完了日を記録、未完了に戻すときは完了日を消す（「その日の消化数」の集計用）
-    if (!item.done) {
-      const doneAt = todayStr();
-      await updateDoc(doc(db, student.hwCol, item.id), { done: true, doneAt, doneAtTs: new Date().toISOString() });
-      item.done = true;
-      item.doneAt = doneAt;
-    } else {
-      await updateDoc(doc(db, student.hwCol, item.id), { done: false, doneAt: deleteField(), doneAtTs: deleteField() });
+    // 完了（やった／スキップ）にするときは完了日を記録、未完了に戻すときは完了日とスキップ印を消す
+    if (state === "none") {
+      await updateDoc(doc(db, student.hwCol, item.id), { done: false, skipped: deleteField(), doneAt: deleteField(), doneAtTs: deleteField() });
       item.done = false;
+      delete item.skipped;
       delete item.doneAt;
+    } else {
+      const doneAt = todayStr();
+      const skipped = state === "skip";
+      await updateDoc(doc(db, student.hwCol, item.id), { done: true, skipped, doneAt, doneAtTs: new Date().toISOString() });
+      item.done = true;
+      item.skipped = skipped;
+      item.doneAt = doneAt;
     }
-    renderCalendar();
-    renderSummary();
-    renderProgress();
+    rerenderAll();
   } catch (e) {
     showError("更新に失敗しました: " + e.message);
   }
+}
+
+// タップと長押し（0.5秒）を見分けて、それぞれのハンドラを呼ぶ。指が動いたら（スクロール）どちらも呼ばない
+const LONG_PRESS_MS = 500;
+function bindPress(el, onTap, onLong) {
+  let timer = null, fired = false, sx = 0, sy = 0;
+  const cancel = () => { clearTimeout(timer); timer = null; };
+  el.addEventListener("pointerdown", (e) => {
+    fired = false; sx = e.clientX; sy = e.clientY;
+    timer = setTimeout(() => {
+      timer = null; fired = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      onLong();
+    }, LONG_PRESS_MS);
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (timer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) cancel();
+  });
+  el.addEventListener("pointerup", cancel);
+  el.addEventListener("pointercancel", cancel);
+  el.addEventListener("pointerleave", cancel);
+  el.addEventListener("contextmenu", (e) => e.preventDefault());
+  el.addEventListener("click", (e) => {
+    if (fired) { fired = false; e.preventDefault(); return; }
+    onTap();
+  });
 }
 
 const TRACKING_START_DATE = "2026-10-01";
@@ -290,10 +327,10 @@ function renderSummary() {
 function countDoneOn(dateStr) {
   const r = { "計算": 0, "社会の基礎": 0, "理科の基礎": 0, "宿題": 0, "テスト直し": 0, total: 0 };
   for (const it of logItems) {
-    if (it.doneAt === dateStr && it.category in r) { r[it.category]++; r.total++; }
+    if (!it.skipped && it.doneAt === dateStr && it.category in r) { r[it.category]++; r.total++; }
   }
   for (const it of hwItems) {
-    if (it.done && it.doneAt === dateStr) { r[it.type === "見直し" ? "テスト直し" : "宿題"]++; r.total++; }
+    if (it.done && !it.skipped && it.doneAt === dateStr) { r[it.type === "見直し" ? "テスト直し" : "宿題"]++; r.total++; }
   }
   return r;
 }
@@ -371,7 +408,7 @@ function renderCalendar() {
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   document.getElementById("monthLabel").textContent = viewYear + "年" + (viewMonth + 1) + "月";
 
-  const doneSet = new Set(logItems.map((it) => it.date + "|" + it.category));
+  const logMap = new Map(logItems.map((it) => [it.date + "|" + it.category, it]));
   const hwByDate = {};
   for (const it of hwItems) {
     if (!it.lessonDate) continue;
@@ -392,12 +429,14 @@ function renderCalendar() {
     let html = '<div class="daynum">' + d + "</div>";
     html += '<div class="dailyrow">';
     for (const cat of DAILY_CATS) {
-      const done = doneSet.has(dateStr + "|" + cat.name);
+      const rec = logMap.get(dateStr + "|" + cat.name);
+      const state = !rec ? "none" : rec.skipped ? "skip" : "done";
       let cls = "future";
-      if (done) cls = "done";
+      if (state === "done") cls = "done";
+      else if (state === "skip") cls = "skipped";
       else if (!isFuture) cls = "bad";
-      const label = cat.short + (done ? " ✓" : "");
-      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-done="' + done + '">' + label + "</div>";
+      const label = cat.short + (state === "done" ? " ✓" : state === "skip" ? " －" : "");
+      html += '<div class="dot ' + cls + '" data-date="' + dateStr + '" data-code="' + cat.code + '" data-state="' + state + '">' + label + "</div>";
     }
     html += "</div>";
 
@@ -407,10 +446,12 @@ function renderCalendar() {
     for (const it of dayHw) {
       const isReview = it.type === "見直し";
       let cls = "undone-future";
-      if (it.done) cls = "done";
+      if (it.done && it.skipped) cls = "skipped";
+      else if (it.done) cls = "done";
       else if (dateStr <= today) cls = "undone-overdue" + (isReview ? " review" : "");
       const reviewPrefix = it.testKind === "模試" ? "模試見直し" : it.testKind === "思考力" ? "思考力直し" : "テスト直し";
-      const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + (it.done ? " ✓" : "");
+      const mark = !it.done ? "" : it.skipped ? " －" : " ✓";
+      const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + mark;
       html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
     }
     cell.innerHTML = html;
@@ -419,16 +460,19 @@ function renderCalendar() {
 
   grid.querySelectorAll(".dot").forEach((dot) => {
     if (dot.classList.contains("future")) return;
-    dot.onclick = () => {
-      const cat = DAILY_CATS.find((c) => c.code === dot.dataset.code);
-      toggleDaily(dot.dataset.date, cat, dot.dataset.done === "true");
-    };
+    const cat = DAILY_CATS.find((c) => c.code === dot.dataset.code);
+    const st = dot.dataset.state;
+    bindPress(dot,
+      () => setDailyState(dot.dataset.date, cat, st === "none" ? "done" : "none"),
+      () => setDailyState(dot.dataset.date, cat, st === "skip" ? "none" : "skip"));
   });
   grid.querySelectorAll(".chip").forEach((chip) => {
-    chip.onclick = () => {
-      const item = hwItems.find((it) => it.id === chip.dataset.id);
-      if (item) toggleHomework(item);
-    };
+    const item = hwItems.find((it) => it.id === chip.dataset.id);
+    if (!item) return;
+    const st = !item.done ? "none" : item.skipped ? "skip" : "done";
+    bindPress(chip,
+      () => setHomeworkState(item, st === "none" ? "done" : "none"),
+      () => setHomeworkState(item, st === "skip" ? "none" : "skip"));
   });
 }
 
