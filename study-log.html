@@ -218,15 +218,49 @@ function rerenderAll() {
   renderProgress();
 }
 
+// 誤タップ対策：完了済みのものを未完了に戻したとき、元の完了情報（完了日・スキップか）をこの端末に覚えておく。
+// 同じ日のうちにタップで完了に戻したら、新しい実績ではなく元の状態をそのまま復元する（消化数が増えない）。
+const UNDO_KEY = "studylog-undo-" + studentKey;
+function loadUndo() {
+  try {
+    const u = JSON.parse(localStorage.getItem(UNDO_KEY) || "{}");
+    if (u.date !== todayStr()) return { date: todayStr(), items: {} };
+    return u;
+  } catch (e) { return { date: todayStr(), items: {} }; }
+}
+function rememberUndone(key, prev) {
+  const u = loadUndo();
+  u.items[key] = prev;
+  localStorage.setItem(UNDO_KEY, JSON.stringify(u));
+}
+function takeUndone(key) {
+  const u = loadUndo();
+  const prev = u.items[key];
+  delete u.items[key];
+  localStorage.setItem(UNDO_KEY, JSON.stringify(u));
+  return prev || null;
+}
+
 async function setDailyState(dateStr, cat, state) {
   const id = dateStr.replace(/-/g, "") + "-" + cat.code;
+  const undoKey = "log:" + id;
   try {
+    const old = logItems.find((it) => it.date === dateStr && it.category === cat.name);
     logItems = logItems.filter((it) => !(it.date === dateStr && it.category === cat.name));
     if (state === "none") {
       await deleteDoc(doc(db, student.logsCol, id));
+      if (old) rememberUndone(undoKey, { doneAt: old.doneAt || null, doneAtTs: old.doneAtTs || null, skipped: !!old.skipped });
     } else {
-      const doneAt = todayStr();
-      const rec = { date: dateStr, category: cat.name, doneAt, doneAtTs: new Date().toISOString(), skipped: state === "skip" };
+      const cached = takeUndone(undoKey);
+      const prev = state === "done" ? cached : null; // 長押し（スキップ）のときは復元しない
+      let rec;
+      if (prev) {
+        // 誤タップの取り消し：元の完了状態に戻す（完了日がない＝記録開始前の完了なら、完了日なしのまま）
+        rec = { date: dateStr, category: cat.name, skipped: prev.skipped };
+        if (prev.doneAt) { rec.doneAt = prev.doneAt; rec.doneAtTs = prev.doneAtTs; }
+      } else {
+        rec = { date: dateStr, category: cat.name, doneAt: todayStr(), doneAtTs: new Date().toISOString(), skipped: state === "skip" };
+      }
       await setDoc(doc(db, student.logsCol, id), rec);
       logItems.push(rec);
     }
@@ -239,18 +273,35 @@ async function setDailyState(dateStr, cat, state) {
 async function setHomeworkState(item, state) {
   try {
     // 完了（やった／スキップ）にするときは完了日を記録、未完了に戻すときは完了日とスキップ印を消す
+    const undoKey = "hw:" + item.id;
     if (state === "none") {
+      if (item.done) rememberUndone(undoKey, { doneAt: item.doneAt || null, doneAtTs: item.doneAtTs || null, skipped: !!item.skipped });
       await updateDoc(doc(db, student.hwCol, item.id), { done: false, skipped: deleteField(), doneAt: deleteField(), doneAtTs: deleteField() });
       item.done = false;
       delete item.skipped;
       delete item.doneAt;
+      delete item.doneAtTs;
     } else {
-      const doneAt = todayStr();
-      const skipped = state === "skip";
-      await updateDoc(doc(db, student.hwCol, item.id), { done: true, skipped, doneAt, doneAtTs: new Date().toISOString() });
-      item.done = true;
-      item.skipped = skipped;
-      item.doneAt = doneAt;
+      const prev = takeUndone(undoKey);
+      if (state === "done" && prev) {
+        // 誤タップの取り消し：元の完了状態に戻す（完了日がない＝記録開始前の完了なら、完了日なしのまま）
+        await updateDoc(doc(db, student.hwCol, item.id), {
+          done: true, skipped: prev.skipped,
+          doneAt: prev.doneAt || deleteField(), doneAtTs: prev.doneAtTs || deleteField(),
+        });
+        item.done = true;
+        item.skipped = prev.skipped;
+        if (prev.doneAt) { item.doneAt = prev.doneAt; item.doneAtTs = prev.doneAtTs; } else { delete item.doneAt; delete item.doneAtTs; }
+      } else {
+        const doneAt = todayStr();
+        const doneAtTs = new Date().toISOString();
+        const skipped = state === "skip";
+        await updateDoc(doc(db, student.hwCol, item.id), { done: true, skipped, doneAt, doneAtTs });
+        item.done = true;
+        item.skipped = skipped;
+        item.doneAt = doneAt;
+        item.doneAtTs = doneAtTs;
+      }
     }
     rerenderAll();
   } catch (e) {
