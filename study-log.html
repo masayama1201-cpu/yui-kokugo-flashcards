@@ -32,7 +32,8 @@
   .monthbar button { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; width: 48px; height: 48px; font-size: 18px; cursor: pointer; }
   .monthbar .label { font-size: 22px; font-weight: 700; }
 
-  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  /* minmax(0,1fr)：長い文字（「模試見直し 国」など）で列が押し広げられ、スマホで画面からはみ出すのを防ぐ */
+  .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
   .dow { text-align: center; font-size: 13px; font-weight: 700; color: #94a3b8; padding-bottom: 6px; }
   .day {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
@@ -53,6 +54,7 @@
   .dot.bad { background: #fef3c7; color: #b45309; }
   .dot.future { background: #f1f5f9; color: #cbd5e1; cursor: default; }
   .dot.skipped, .chip.skipped { background: #e2e8f0; color: #64748b; }
+  .chip { min-width: 0; text-align: center; overflow-wrap: anywhere; }
   .dot, .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 
   .chip {
@@ -101,7 +103,14 @@
   .rangebar { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
   .rbtn { background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 12px; font-size: 13px; color: #475569; cursor: pointer; }
   .rbtn.on { background: #1e293b; border-color: #1e293b; color: #fff; font-weight: 700; }
-  @media (max-width: 480px) { .blab { font-size: 9px; } .bars { gap: 3px; } }
+  .bcol { min-width: 0; } /* ラベルの文字幅で列が押し広げられないようにする */
+  .blab .ls { display: none; }
+  @media (max-width: 480px) {
+    .blab { font-size: 9px; white-space: nowrap; }
+    .bars { gap: 3px; }
+    .blab .lf { display: none; }
+    .blab .ls { display: inline; }
+  }
   .bars.dense { gap: 2px; }
   .bars.dense .bstack { width: 80%; }
   .bars.dense .bnum { font-size: 10px; }
@@ -465,8 +474,11 @@ function renderProgress() {
       if (v) html += '<div class="bseg" style="height:' + (v / max * 100) + "%;background:" + p.color + ";color:" + (p.text || "#fff") + '">' + v + "</div>";
     }
     html += "</div>";
+    // 日付ラベル：通常は「11/18」。スマホ幅では列が細いので、月の初日と左端の列だけ「11/18」、ほかは「18」と短く出す（CSSで切替）
     const md = (x.d.getMonth() + 1) + "/" + x.d.getDate();
-    html += '<div class="blab">' + (showLabel ? (n > 7 ? md + (n <= 14 ? "<br>" + DOW[x.d.getDay()] : "") : md + "<br>(" + DOW[x.d.getDay()] + ")") : "&nbsp;") + "</div>";
+    const shortMd = (idx === 0 || x.d.getDate() === 1) ? md : String(x.d.getDate());
+    const mdHtml = '<span class="lf">' + md + '</span><span class="ls">' + shortMd + "</span>";
+    html += '<div class="blab">' + (showLabel ? (n > 7 ? mdHtml + (n <= 14 ? "<br>" + DOW[x.d.getDay()] : "") : mdHtml + "<br>(" + DOW[x.d.getDay()] + ")") : "&nbsp;") + "</div>";
     html += "</div>";
   });
   html += "</div>";
