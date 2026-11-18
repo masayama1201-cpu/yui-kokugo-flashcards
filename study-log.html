@@ -216,6 +216,26 @@ async function readHomework() {
   return arr;
 }
 
+// やり残し扱いになったか。宿題は授業当日の19:30を過ぎてから（授業が終わって宿題が出てから）、
+// テスト直しはテスト当日から、やり残しとして数える
+const HW_DUE_TIME = "19:30";
+function nowHHMM() {
+  const d = new Date();
+  return pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+function isDue(it) {
+  const today = todayStr();
+  const ld = it.lessonDate || "";
+  if (it.type === "見直し") return ld <= today;
+  return ld < today || (ld === today && nowHHMM() >= HW_DUE_TIME);
+}
+// ページを開いたままでも、19:30や日付が変わった時点で表示を切り替える
+let dueStamp = todayStr() + "|" + (nowHHMM() >= HW_DUE_TIME);
+setInterval(() => {
+  const s = todayStr() + "|" + (nowHHMM() >= HW_DUE_TIME);
+  if (s !== dueStamp) { dueStamp = s; rerenderAll(); }
+}, 30000);
+
 // 状態は3つ："none"（未）／"done"（やった＝消化数に数える）／"skip"（やったことにする＝やり残しからは消すが消化数には数えない）
 // タップ：未→done、done/skip→未。長押し：skip⇔未（doneを長押しするとskipに変わる）
 function rerenderAll() {
@@ -361,7 +381,7 @@ function renderSummary() {
     return { label: cat.name, n };
   });
 
-  const hwCount = hwItems.filter((it) => it.type !== "見直し" && !it.done && (it.lessonDate || "") <= today).length;
+  const hwCount = hwItems.filter((it) => it.type !== "見直し" && !it.done && isDue(it)).length;
   const reviewCount = hwItems.filter((it) => it.type === "見直し" && !it.done && (it.lessonDate || "") <= today).length;
 
   const t = countDoneOn(today);
@@ -505,7 +525,7 @@ function renderCalendar() {
       let cls = "undone-future";
       if (it.done && it.skipped) cls = "skipped";
       else if (it.done) cls = "done";
-      else if (dateStr <= today) cls = "undone-overdue" + (isReview ? " review" : "");
+      else if (isDue(it)) cls = "undone-overdue" + (isReview ? " review" : "");
       const reviewPrefix = it.testKind === "模試" ? "模試見直し" : it.testKind === "思考力" ? "思考力直し" : "テスト直し";
       const mark = !it.done ? "" : it.skipped ? " －" : " ✓";
       const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + mark;
