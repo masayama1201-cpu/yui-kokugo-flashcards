@@ -14,6 +14,8 @@
     font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
     margin: 0;
     padding: 12px;
+    /* ホーム画面から開くと上端がステータスバー（時計・電池）の下に潜るので、その分だけ下げる */
+    padding-top: calc(12px + env(safe-area-inset-top));
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: #f7f8fa;
     color: #1e293b;
@@ -21,8 +23,8 @@
     margin-left: auto;
     margin-right: auto;
   }
-  h1 { font-size: 24px; margin: 4px 2px 4px; }
-  .sub { color: #64748b; font-size: 15px; margin: 0 2px 18px; }
+  h1 { font-size: 24px; margin: 4px 2px 14px; }
+  .sub { color: #64748b; font-size: 14px; margin: 24px 2px 0; }
   .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; color: #475569; margin: 0 2px 16px; }
   .legend span.sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
   .err { color: #dc2626; font-size: 15px; padding: 14px; background: #fef2f2; border-radius: 10px; margin-bottom: 16px; }
@@ -128,7 +130,6 @@
 </head>
 <body>
   <h1 id="pageTitle">学習カレンダー</h1>
-  <p class="sub">日々の課題（計・社・理）、授業の宿題、テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。長押しで「やったことにする（－）」になり、やり残しからは消えますが消化数には数えません。</p>
   <div class="legend">
     <span><span class="sw" style="background:#dcfce7"></span>済</span>
     <span><span class="sw" style="background:#fef3c7"></span>未（日々の課題）</span>
@@ -151,6 +152,8 @@
 
   <h2 id="progressHeading">直近2週間の消化数</h2>
   <div id="progress"></div>
+
+  <p class="sub">日々の課題（計・社・理）、授業の宿題、テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。長押しで「やったことにする（－）」になり、やり残しからは消えますが消化数には数えません。</p>
 
   <footer id="pageFooter">学習カレンダー（Firebase版）／ 計=計算　社=社会の基礎　理=理科の基礎／宿題チップは国算社理＋回、見直しチップは教科＋「見」</footer>
 
