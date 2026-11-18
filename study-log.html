@@ -217,8 +217,9 @@ async function readHomework() {
 }
 
 // やり残し扱いになったか。宿題は授業当日の19:30を過ぎてから（授業が終わって宿題が出てから）、
-// テスト直しはテスト当日から、やり残しとして数える
+// テスト直しはテスト当日の12:00を過ぎてから、やり残しとして数える
 const HW_DUE_TIME = "19:30";
+const REVIEW_DUE_TIME = "12:00";
 function nowHHMM() {
   const d = new Date();
   return pad(d.getHours()) + ":" + pad(d.getMinutes());
@@ -226,13 +227,14 @@ function nowHHMM() {
 function isDue(it) {
   const today = todayStr();
   const ld = it.lessonDate || "";
-  if (it.type === "見直し") return ld <= today;
-  return ld < today || (ld === today && nowHHMM() >= HW_DUE_TIME);
+  const dueTime = it.type === "見直し" ? REVIEW_DUE_TIME : HW_DUE_TIME;
+  return ld < today || (ld === today && nowHHMM() >= dueTime);
 }
-// ページを開いたままでも、19:30や日付が変わった時点で表示を切り替える
-let dueStamp = todayStr() + "|" + (nowHHMM() >= HW_DUE_TIME);
+// ページを開いたままでも、12:00・19:30や日付が変わった時点で表示を切り替える
+const dueStampNow = () => todayStr() + "|" + (nowHHMM() >= REVIEW_DUE_TIME) + "|" + (nowHHMM() >= HW_DUE_TIME);
+let dueStamp = dueStampNow();
 setInterval(() => {
-  const s = todayStr() + "|" + (nowHHMM() >= HW_DUE_TIME);
+  const s = dueStampNow();
   if (s !== dueStamp) { dueStamp = s; rerenderAll(); }
 }, 30000);
 
@@ -382,7 +384,7 @@ function renderSummary() {
   });
 
   const hwCount = hwItems.filter((it) => it.type !== "見直し" && !it.done && isDue(it)).length;
-  const reviewCount = hwItems.filter((it) => it.type === "見直し" && !it.done && (it.lessonDate || "") <= today).length;
+  const reviewCount = hwItems.filter((it) => it.type === "見直し" && !it.done && isDue(it)).length;
 
   const t = countDoneOn(today);
   const cards = [
