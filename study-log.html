@@ -15,7 +15,7 @@
     margin: 0;
     padding: 12px;
     /* ホーム画面から開くと上端がステータスバー（時計・電池）の下に潜るので、その分だけ下げる */
-    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-top: calc(26px + env(safe-area-inset-top));
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: #f7f8fa;
     color: #1e293b;
@@ -543,7 +543,7 @@ function renderCalendar() {
       if (it.done && it.skipped) cls = "skipped";
       else if (it.done) cls = "done";
       else if (isDue(it)) cls = "undone-overdue" + (isReview ? " review" : "");
-      const reviewPrefix = it.testKind === "模試" ? "模試見直し" : it.testKind === "思考力" ? "思考力直し" : "テスト直し";
+      const reviewPrefix = it.testKind === "模試" ? "模試直し" : it.testKind === "思考力" ? "思考力直し" : "テス直し"; // カレンダーの欄に収まるよう短めの表記
       const mark = !it.done ? "" : it.skipped ? " －" : " ✓";
       const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + mark;
       html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
