@@ -543,7 +543,7 @@ function renderCalendar() {
       if (it.done && it.skipped) cls = "skipped";
       else if (it.done) cls = "done";
       else if (isDue(it)) cls = "undone-overdue" + (isReview ? " review" : "");
-      const reviewPrefix = it.testKind === "模試" ? "模試直し" : it.testKind === "思考力" ? "思考力直し" : "テス直し"; // カレンダーの欄に収まるよう短めの表記
+      const reviewPrefix = it.testKind === "模試" ? "模試直し" : it.testKind === "思考力" ? "思考直し" : "テス直し"; // カレンダーの欄に収まるよう短めの表記
       const mark = !it.done ? "" : it.skipped ? " －" : " ✓";
       const label = (isReview ? reviewPrefix + " " + SUBJECT_SHORT[it.subject] : SUBJECT_SHORT[it.subject] + (it.round || "")) + mark;
       html += '<div class="chip ' + cls + '" data-id="' + it.id + '">' + label + "</div>";
