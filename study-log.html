@@ -102,6 +102,12 @@
   .bcol.today .blab, .bcol.today .bnum { color: #1e293b; font-weight: 800; }
   .blegend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #475569; margin-top: 10px; justify-content: center; }
   .blegend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  #backlog { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 10px 10px; overflow: hidden; }
+  .llegend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; }
+  .lbtn { background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 12px; font-size: 13px; color: #334155; cursor: pointer; }
+  .lbtn .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .lbtn b { margin-left: 4px; }
+  .lbtn.off { opacity: 0.35; text-decoration: line-through; }
   .rangebar { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
   .rbtn { background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 12px; font-size: 13px; color: #475569; cursor: pointer; }
   .rbtn.on { background: #1e293b; border-color: #1e293b; color: #fff; font-weight: 700; }
@@ -152,6 +158,9 @@
 
   <h2 id="progressHeading">直近2週間の消化数</h2>
   <div id="progress"></div>
+
+  <h2 id="backlogHeading">直近2週間のやり残しの推移</h2>
+  <div id="backlog"></div>
 
   <p class="sub">日々の課題（計・社・理）、授業の宿題、テストの見直しをまとめて管理します。タップで完了/未完了を切り替えます。長押しで「やったことにする（－）」になり、やり残しからは消えますが消化数には数えません。</p>
 
@@ -493,7 +502,124 @@ function renderProgress() {
   box.querySelectorAll(".rbtn").forEach((b) => {
     b.onclick = () => { progressRange = Number(b.dataset.days); renderProgress(); };
   });
+  renderBacklog();
 }
+
+// ===== やり残しの推移（折れ線グラフ）=====
+// 各日の「日付が変わる瞬間（その日の終わり）」時点のやり残しを、完了日（doneAt）の記録から計算し直して描く。
+// 完了日のない完了＝11/16より前に完了したもの、として「ずっと前から完了していた」扱いにする。
+// 今日の点だけは「今この瞬間」の値（上の「現時点のやり残し」と同じ数）。
+const BACKLOG_SERIES = [
+  { key: "daily", label: "日々の課題", color: "#f59e0b" },
+  { key: "hw", label: "宿題", color: "#ea580c" },
+  { key: "review", label: "テスト直し", color: "#7c3aed" },
+];
+const backlogHidden = new Set(); // 凡例タップで非表示にした系列
+
+function backlogAt(D, isNow) {
+  const logMap = new Map(logItems.map((it) => [it.date + "|" + it.category, it]));
+  const doneBy = (doneAt) => isNow || !doneAt || doneAt <= D;
+  let daily = 0;
+  const start = new Date(TRACKING_START_DATE + "T00:00:00");
+  const end = new Date(D + "T00:00:00");
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    for (const cat of DAILY_CATS) {
+      const rec = logMap.get(ds + "|" + cat.name);
+      if (!(rec && doneBy(rec.doneAt))) daily++;
+    }
+  }
+  let hw = 0, review = 0;
+  for (const it of hwItems) {
+    const due = isNow ? isDue(it) : (it.lessonDate || "") <= D;
+    if (!due) continue;
+    if (it.done && doneBy(it.doneAt)) continue;
+    if (it.type === "見直し") review++; else hw++;
+  }
+  return { daily, hw, review };
+}
+
+function renderBacklog() {
+  const box = document.getElementById("backlog");
+  if (!box) return;
+  const today = todayStr();
+  let n = progressRange;
+  if (n === 0) {
+    n = Math.max(1, Math.round((new Date(today + "T00:00:00") - new Date(PROGRESS_START_DATE + "T00:00:00")) / 86400000) + 1);
+  }
+  const rangeObj = PROGRESS_RANGES.find((r) => r.days === progressRange);
+  document.getElementById("backlogHeading").textContent =
+    progressRange === 0 ? "記録開始からのやり残しの推移" : "直近" + rangeObj.label + "のやり残しの推移";
+
+  const days = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today + "T00:00:00");
+    d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    const valid = ds >= PROGRESS_START_DATE;
+    days.push({ ds, d, v: valid ? backlogAt(ds, ds === today) : null });
+  }
+  const shown = BACKLOG_SERIES.filter((s) => !backlogHidden.has(s.key));
+
+  // 寸法（箱の実際の幅に合わせて描く）
+  const W = Math.max(280, box.clientWidth - 20);
+  const narrow = W < 450;
+  const H = 210, L = 34, R = 26, T = 16, B = narrow ? 30 : 36;
+  const pw = W - L - R, ph = H - T - B;
+  let max = 0;
+  for (const x of days) if (x.v) for (const s of shown) max = Math.max(max, x.v[s.key]);
+  // 目盛り：きりのいい間隔
+  const steps = [1, 2, 5, 10, 20, 25, 50, 100];
+  const step = steps.find((s) => Math.ceil(max / s) <= 5) || 100;
+  const top = Math.max(step, Math.ceil(max / step) * step);
+  const X = (i) => L + (n === 1 ? pw / 2 : (pw * i) / (n - 1));
+  const Y = (v) => T + ph - (ph * v) / top;
+
+  let svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" style="display:block">';
+  for (let v = 0; v <= top; v += step) {
+    svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="#e2e8f0" stroke-width="1"/>';
+    svg += '<text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="11" fill="#94a3b8">' + v + "</text>";
+  }
+  // 日付ラベル（多いときは間引く。今日は必ず表示）
+  const labelEvery = n > 14 ? Math.ceil(n / 10) : (narrow && n > 7 ? 2 : 1);
+  days.forEach((x, i) => {
+    if ((n - 1 - i) % labelEvery !== 0) return;
+    const isT = x.ds === today;
+    const md = (narrow && i !== 0 && x.d.getDate() !== 1) ? String(x.d.getDate()) : (x.d.getMonth() + 1) + "/" + x.d.getDate();
+    svg += '<text x="' + X(i) + '" y="' + (H - B + 16) + '" text-anchor="middle" font-size="' + (narrow ? 10 : 11) + '" fill="' + (isT ? "#1e293b" : "#94a3b8") + '"' + (isT ? ' font-weight="800"' : "") + ">" + (isT ? "今" : md) + "</text>";
+    if (n <= 14 && !narrow) svg += '<text x="' + X(i) + '" y="' + (H - B + 30) + '" text-anchor="middle" font-size="10" fill="#94a3b8">' + DOW[x.d.getDay()] + "</text>";
+  });
+  // 折れ線
+  for (const s of shown) {
+    const pts = [];
+    days.forEach((x, i) => { if (x.v) pts.push([X(i), Y(x.v[s.key]), x.v[s.key]]); });
+    if (!pts.length) continue;
+    svg += '<polyline fill="none" stroke="' + s.color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map((p) => p[0] + "," + p[1]).join(" ") + '"/>';
+    for (const p of pts) svg += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (n > 14 ? 2 : 3.5) + '" fill="#fff" stroke="' + s.color + '" stroke-width="2"/>';
+    const last = pts[pts.length - 1];
+    svg += '<text x="' + (last[0] + 7) + '" y="' + (last[1] + 4) + '" font-size="12" font-weight="800" fill="' + s.color + '">' + last[2] + "</text>";
+  }
+  svg += "</svg>";
+
+  const now = days[days.length - 1].v;
+  let html = svg + '<div class="llegend">' + BACKLOG_SERIES.map((s) =>
+    '<button class="lbtn' + (backlogHidden.has(s.key) ? " off" : "") + '" data-key="' + s.key + '"><span class="sw" style="background:' + s.color + '"></span>' +
+    s.label + " <b>" + (now ? now[s.key] : "") + "</b></button>").join("") + "</div>";
+  html += '<div class="bnote">各日の終わり（日付が変わる瞬間）時点の数。右端の「今」だけは現在の数です。凡例をタップすると線の表示／非表示を切り替えられます（11/16から記録開始）</div>';
+  box.innerHTML = html;
+  box.querySelectorAll(".lbtn").forEach((b) => {
+    b.onclick = () => {
+      const k = b.dataset.key;
+      if (backlogHidden.has(k)) backlogHidden.delete(k); else backlogHidden.add(k);
+      renderBacklog();
+    };
+  });
+}
+let backlogResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(backlogResizeTimer);
+  backlogResizeTimer = setTimeout(renderBacklog, 200);
+});
 
 function renderCalendar() {
   const today = todayStr();
